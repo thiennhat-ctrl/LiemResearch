@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Building2, CreditCard, Mail, Lock } from 'lucide-react';
-import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png?url';
 import { getAuthSession } from '../utils/auth';
 
 export function RegisterPage() {

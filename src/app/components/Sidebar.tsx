@@ -1,6 +1,6 @@
 import { Home, FileText, Settings, LogOut, BarChart3, Users, Search, Trophy, User as UserIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
-import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png?url';
 import { clearAuthSession } from '../utils/auth';
 
 interface SidebarProps {
