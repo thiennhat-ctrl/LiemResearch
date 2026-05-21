@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Sidebar } from '../components/Sidebar';
 import { ArrowLeft } from 'lucide-react';
-
-const existingPapers = [
-  { doi: '10.1234/ml.healthcare.2024', link: 'https://example.com/ml-healthcare', title: 'Machine Learning Applications in Healthcare' },
-  { doi: '10.1234/dnn.classification.2024', link: 'https://example.com/dnn-classification', title: 'Deep Neural Networks for Image Classification' },
-  { doi: '10.1234/nlp.modern.2024', link: 'https://example.com/nlp-modern', title: 'Natural Language Processing in Modern Applications' },
-];
+import { apiRequest } from '../lib/api';
 
 export function RequestPaperPage() {
   const navigate = useNavigate();
@@ -19,7 +14,9 @@ export function RequestPaperPage() {
     keywords: '',
     year: '',
   });
-  const [duplicateWarning, setDuplicateWarning] = useState<string>('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -27,36 +24,40 @@ export function RequestPaperPage() {
       ...formData,
       [name]: value,
     });
-
-    // Check for duplicates when DOI or link is entered
-    if ((name === 'doi' || name === 'link') && value) {
-      const duplicate = existingPapers.find(
-        paper =>
-          (name === 'doi' && paper.doi.toLowerCase() === value.toLowerCase()) ||
-          (name === 'link' && paper.link.toLowerCase() === value.toLowerCase())
-      );
-
-      if (duplicate) {
-        setDuplicateWarning(`⚠️ This ${name.toUpperCase()} already exists in the system: "${duplicate.title}"`);
-      } else {
-        setDuplicateWarning('');
-      }
-    }
+    setError('');
+    setMessage('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setMessage('');
+    setIsSubmitting(true);
 
-    if (duplicateWarning) {
-      const confirmed = window.confirm(
-        'This paper may already exist in the system. Do you still want to submit the request?'
-      );
-      if (!confirmed) return;
+    try {
+      await apiRequest('/papers', {
+        method: 'POST',
+        auth: true,
+        body: JSON.stringify({
+          title: formData.title,
+          doi: formData.doi,
+          paperLink: formData.link,
+          abstract: formData.abstract,
+          keywords: formData.keywords,
+          publishedYear: Number(formData.year),
+        }),
+      });
+
+      setMessage('Paper request submitted successfully.');
+      setTimeout(() => navigate('/my-requests'), 600);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to submit paper request');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    alert('Paper request submitted successfully!');
-    navigate('/my-requests');
   };
+
+  const isFormInvalid = !formData.title || !formData.doi || !formData.link || !formData.abstract || !formData.year;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -78,9 +79,15 @@ export function RequestPaperPage() {
           </div>
 
           <div className="bg-white rounded-lg border border-border shadow-sm p-8">
-            {duplicateWarning && (
-              <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg">
-                <p className="text-amber-800">{duplicateWarning}</p>
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+
+            {message && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-700">{message}</p>
               </div>
             )}
 
@@ -100,7 +107,7 @@ export function RequestPaperPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-foreground mb-2">DOI</label>
+                  <label className="block text-foreground mb-2">DOI *</label>
                   <input
                     type="text"
                     name="doi"
@@ -108,11 +115,12 @@ export function RequestPaperPage() {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
                     placeholder="10.1234/example.2024"
+                    required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-foreground mb-2">Publication Year</label>
+                  <label className="block text-foreground mb-2">Publication Year *</label>
                   <input
                     type="number"
                     name="year"
@@ -122,12 +130,13 @@ export function RequestPaperPage() {
                     placeholder="2024"
                     min="1900"
                     max="2099"
+                    required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-foreground mb-2">Paper Link</label>
+                <label className="block text-foreground mb-2">Paper Link *</label>
                 <input
                   type="url"
                   name="link"
@@ -135,11 +144,12 @@ export function RequestPaperPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
                   placeholder="https://example.com/paper"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block text-foreground mb-2">Abstract</label>
+                <label className="block text-foreground mb-2">Abstract *</label>
                 <textarea
                   name="abstract"
                   value={formData.abstract}
@@ -147,6 +157,7 @@ export function RequestPaperPage() {
                   rows={4}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background resize-none"
                   placeholder="Paste or enter the paper abstract..."
+                  required
                 />
               </div>
 
@@ -166,9 +177,10 @@ export function RequestPaperPage() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                  disabled={isSubmitting || isFormInvalid}
+                  className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Submit Request
+                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
                 </button>
                 <button
                   type="button"
