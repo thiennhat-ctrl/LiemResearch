@@ -30,7 +30,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
   return (
     <div className="w-64 h-screen bg-white border-r border-border flex flex-col">
       <div className="p-6 border-b border-border flex items-center justify-center">
-        <img src={logo} alt="LiemResearch" className="h-16 w-auto" />
+        <img src={logo} alt="LiemResearch" className="h-32 w-auto" />
       </div>
 
       <nav className="flex-1 p-4">

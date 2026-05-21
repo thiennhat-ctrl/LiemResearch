@@ -182,7 +182,7 @@ export function UserDashboard() {
     <div className="flex min-h-screen bg-background">
       <Sidebar role="user" />
 
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>

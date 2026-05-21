@@ -117,7 +117,7 @@ export function UserRankingPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar role="user" />
 
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-foreground mb-2">User Rankings</h1>

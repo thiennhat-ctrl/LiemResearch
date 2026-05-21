@@ -131,7 +131,7 @@ export function UserManagementPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar role="admin" />
 
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-foreground mb-2">User Management</h1>

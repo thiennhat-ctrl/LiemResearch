@@ -53,7 +53,7 @@ export function PaperDetailPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar role={isAdmin ? 'admin' : 'user'} />
 
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-6">
         <div className="max-w-5xl mx-auto">
           <button
             onClick={() => navigate(isAdmin ? '/admin/papers' : '/dashboard')}

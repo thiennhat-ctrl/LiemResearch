@@ -11,27 +11,55 @@ interface UploadPdfModalProps {
 export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: UploadPdfModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
+  const handleClose = () => {
+    setSelectedFile(null);
+    setIsDragging(false);
+    setErrorMessage(null);
+    onClose();
+  };
+
+  const validateFile = (file: File) => {
+    if (file.type !== 'application/pdf') return 'Only PDF files are accepted.';
+    if (file.size > MAX_FILE_SIZE) return 'File size must be less than 20MB.';
+    return null;
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file);
-    } else {
-      alert('Please select a PDF file');
+    setErrorMessage(null);
+    if (!file) return;
+
+    const error = validateFile(file);
+    if (error) {
+      setSelectedFile(null);
+      setErrorMessage(error);
+      return;
     }
+
+    setSelectedFile(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file);
-    } else {
-      alert('Please select a PDF file');
+    setErrorMessage(null);
+    if (!file) return;
+
+    const error = validateFile(file);
+    if (error) {
+      setSelectedFile(null);
+      setErrorMessage(error);
+      return;
     }
+
+    setSelectedFile(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -47,7 +75,7 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
     if (selectedFile) {
       onUpload(selectedFile);
       setSelectedFile(null);
-      onClose();
+      handleClose();
     }
   };
 
@@ -60,7 +88,7 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
@@ -68,7 +96,7 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
             <p className="text-muted-foreground mt-1">{paperTitle}</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
           >
             <X size={20} />
@@ -120,7 +148,10 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
                   </p>
                 </div>
                 <button
-                  onClick={() => setSelectedFile(null)}
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setErrorMessage(null);
+                  }}
                   className="p-2 hover:bg-red-100 rounded-lg transition-colors ml-4"
                 >
                   <X size={20} className="text-red-600" />
@@ -129,14 +160,18 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
             )}
           </div>
 
+          {errorMessage ? (
+            <p className="text-destructive text-sm mt-3">{errorMessage}</p>
+          ) : null}
+
           <p className="text-muted-foreground mt-4">
-            Maximum file size: 50MB. Only PDF files are accepted.
+            Maximum file size: 20MB. Only PDF files are accepted.
           </p>
         </div>
 
         <div className="flex gap-4 p-6 border-t border-border">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="flex-1 px-6 py-3 border border-border rounded-lg hover:bg-accent transition-colors"
           >
             Cancel
