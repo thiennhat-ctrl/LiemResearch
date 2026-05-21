@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Building2, CreditCard, Mail, Lock } from 'lucide-react';
 import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import { apiRequest, AuthUser, saveAuth } from '../lib/api';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export function RegisterPage() {
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -20,9 +23,24 @@ export function RegisterPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/login');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const data = await apiRequest<{ user: AuthUser; token: string }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      });
+
+      saveAuth(data.token, data.user);
+      navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Register failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -120,10 +138,15 @@ export function RegisterPage() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors"
             >
-              Register
+              {isLoading ? 'Registering...' : 'Register'}
             </button>
+
+            {error && (
+              <p className="text-red-600 text-center">{error}</p>
+            )}
           </form>
 
           <div className="mt-6 text-center">

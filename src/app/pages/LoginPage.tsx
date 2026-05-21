@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
 import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import { apiRequest, AuthUser, saveAuth } from '../lib/api';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -16,22 +17,12 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const data = await apiRequest<{ user: AuthUser; token: string }>('/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      saveAuth(data.token, data.user);
 
       navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {

@@ -1,19 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { User, Mail, Building2, CreditCard, Trophy, Upload, Download, Star, Edit } from 'lucide-react';
+import { apiRequest, AuthUser, clearAuth, getStoredUser, saveAuth } from '../lib/api';
+
+type ProfileForm = {
+  fullName: string;
+  email: string;
+  university: string;
+  studentId: string;
+  memberSince: string;
+};
+
+function mapUserToProfile(user: AuthUser): ProfileForm {
+  return {
+    fullName: user.fullName,
+    email: user.email,
+    university: user.university,
+    studentId: user.studentId,
+    memberSince: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '',
+  };
+}
 
 export function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@mit.edu',
-    university: 'MIT',
-    studentId: 'STU001',
-    memberSince: '2024-01-15',
-    bio: 'Computer Science student interested in Machine Learning and AI research.',
-  });
-
-  const [editForm, setEditForm] = useState(profile);
+  const storedUser = getStoredUser();
+  const initialProfile = storedUser
+    ? mapUserToProfile(storedUser)
+    : { fullName: '', email: '', university: '', studentId: '', memberSince: '' };
+  const [profile, setProfile] = useState<ProfileForm>(initialProfile);
+  const [editForm, setEditForm] = useState<ProfileForm>(initialProfile);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const stats = {
     uploadedPapers: 45,
@@ -23,10 +42,66 @@ export function UserProfilePage() {
     rank: 1,
   };
 
-  const handleSave = () => {
-    setProfile(editForm);
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfile() {
+      try {
+        const data = await apiRequest<{ user: AuthUser }>('/auth/me', { auth: true });
+        const nextProfile = mapUserToProfile(data.user);
+
+        if (isMounted) {
+          setProfile(nextProfile);
+          setEditForm(nextProfile);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setError('');
+        }
+      } catch (err) {
+        clearAuth();
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Unable to load profile');
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSave = async () => {
+    setError('');
+    setMessage('');
+    setIsSaving(true);
+
+    try {
+      const data = await apiRequest<{ user: AuthUser }>('/auth/me', {
+        method: 'PATCH',
+        auth: true,
+        body: JSON.stringify({
+          fullName: editForm.fullName,
+          university: editForm.university,
+          studentId: editForm.studentId,
+        }),
+      });
+      const token = localStorage.getItem('token');
+      const nextProfile = mapUserToProfile(data.user);
+
+      if (token) saveAuth(token, data.user);
+
+      setProfile(nextProfile);
+      setEditForm(nextProfile);
+      setIsEditing(false);
+      setMessage('Profile updated successfully.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -44,6 +119,24 @@ export function UserProfilePage() {
             <h1 className="text-foreground mb-2">My Profile</h1>
             <p className="text-muted-foreground">Manage your account information and view statistics</p>
           </div>
+
+          {isLoading && (
+            <div className="bg-white rounded-lg border border-border shadow-sm p-6 mb-8">
+              <p className="text-muted-foreground">Loading profile...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-8">
+              {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-8">
+              {message}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg border border-border shadow-sm p-6">
@@ -103,9 +196,10 @@ export function UserProfilePage() {
                   </button>
                   <button
                     onClick={handleSave}
+                    disabled={isSaving}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-blue-600 transition-colors"
                   >
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               )}
@@ -142,7 +236,7 @@ export function UserProfilePage() {
                   <input
                     type="email"
                     value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    disabled
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
                   />
                 ) : (
@@ -178,20 +272,6 @@ export function UserProfilePage() {
                 </label>
                 <p className="text-muted-foreground">{profile.studentId}</p>
                 <p className="text-muted-foreground mt-1">Member since {profile.memberSince}</p>
-              </div>
-
-              <div>
-                <label className="block text-foreground mb-2">Bio</label>
-                {isEditing ? (
-                  <textarea
-                    value={editForm.bio}
-                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background resize-none"
-                  />
-                ) : (
-                  <p className="text-muted-foreground">{profile.bio}</p>
-                )}
               </div>
             </div>
           </div>
