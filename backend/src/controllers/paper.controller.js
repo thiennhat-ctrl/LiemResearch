@@ -1,4 +1,5 @@
 import { Paper } from '../models/Paper.js';
+import { User } from '../models/User.js';
 
 function normalizeKeywords(keywords) {
   if (Array.isArray(keywords)) return keywords.map((item) => String(item).trim()).filter(Boolean);
@@ -18,6 +19,7 @@ export async function createPaper(req, res) {
     return res.status(409).json({
       message: 'A paper with this DOI or link already exists',
       duplicatePaperId: duplicate._id,
+      existingPaper: duplicate,
     });
   }
 
@@ -29,6 +31,11 @@ export async function createPaper(req, res) {
     keywords: normalizeKeywords(keywords),
     publishedYear,
     requestedBy: req.user._id,
+  });
+
+  // Tăng điểm đóng góp
+  await User.findByIdAndUpdate(req.user._id, {
+    $inc: { totalRequestsCreated: 1, contributionScore: 10 },
   });
 
   res.status(201).json({ paper });
@@ -107,4 +114,50 @@ export async function uploadPaperPdf(req, res) {
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
   res.json({ paper });
+}
+
+// 🆕 Upload PDF cho bài báo đã tồn tại
+export async function uploadExistingPaper(req, res) {
+  try {
+    const { doi, paperLink } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'PDF file is required' });
+    }
+
+    if (!doi && !paperLink) {
+      return res.status(400).json({ message: 'DOI or paperLink is required' });
+    }
+
+    // Tìm bài báo theo DOI hoặc link
+    const paper = await Paper.findOne({
+      $or: [
+        ...(doi ? [{ doi }] : []),
+        ...(paperLink ? [{ paperLink }] : []),
+      ],
+    });
+
+    if (!paper) {
+      return res.status(404).json({ message: 'Paper not found in database' });
+    }
+
+    if (paper.status === 'downloaded' && paper.pdfPath) {
+      return res.status(400).json({ message: 'Paper already has PDF uploaded' });
+    }
+
+    const updatedPaper = await Paper.findByIdAndUpdate(
+      paper._id,
+      {
+        pdfPath: `/uploads/${req.file.filename}`,
+        uploadedBy: req.user._id,
+        uploadedAt: new Date(),
+        status: 'downloaded',
+      },
+      { new: true }
+    );
+
+    res.json({ paper: updatedPaper });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 }

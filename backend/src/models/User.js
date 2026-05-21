@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    contributionScore: { type: Number, default: 0 },
+    totalRequestsCreated: { type: Number, default: 0 },
+    totalRatingsGiven: { type: Number, default: 0 },
+    rank: { type: String, default: 'Beginner' },
   },
   { timestamps: true }
 );
