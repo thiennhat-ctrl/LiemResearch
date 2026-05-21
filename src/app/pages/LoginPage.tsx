@@ -8,6 +8,8 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const session = getAuthSession();
@@ -16,14 +18,41 @@ export function LoginPage() {
     navigate(session.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
   }, [navigate]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.includes('admin')) {
-      setAuthSession({ role: 'admin', email });
-      navigate('/admin');
-    } else {
-      setAuthSession({ role: 'user', email });
-      navigate('/dashboard');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      if (data?.token) {
+        localStorage.setItem('token', data.token);
+      }
+      if (data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      const role = data?.user?.role === 'admin' ? 'admin' : 'user';
+      setAuthSession({ role, email: data?.user?.email ?? email });
+
+      navigate(role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,10 +101,15 @@ export function LoginPage() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors"
             >
-              Login
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
+
+            {error && (
+              <p className="text-red-600 text-center">{error}</p>
+            )}
           </form>
 
           <div className="mt-6 text-center">
