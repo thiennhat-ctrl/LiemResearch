@@ -46,6 +46,8 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
                   onClick={() => {
                     if (item.isLogout) {
                       clearAuthSession();
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('user');
                       navigate('/login', { replace: true });
                       return;
                     }
