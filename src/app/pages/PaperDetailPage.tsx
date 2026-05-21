@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { Sidebar } from '../components/Sidebar';
 import { StatusBadge } from '../components/StatusBadge';
 import { UploadPdfModal } from '../components/UploadPdfModal';
-import { ArrowLeft, Download, Upload, Calendar, User, Link as LinkIcon, Star, Send } from 'lucide-react';
+import { ArrowLeft, Download, Upload, Calendar, User, Link as LinkIcon, Star } from 'lucide-react';
 import { apiRequest, getStoredUser } from '../lib/api';
 import { PublicPaper } from '../lib/papers';
 
@@ -45,6 +45,7 @@ export function PaperDetailPage() {
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState('');
+  const [existingRatingId, setExistingRatingId] = useState<string | null>(null);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
@@ -72,6 +73,8 @@ export function PaperDetailPage() {
       setPaper(paperData.paper);
       setRatings(ratingsData.ratings);
       setUserRating(existingUserRating?.rating || 0);
+      setUserComment(existingUserRating?.comment || '');
+      setExistingRatingId(existingUserRating?._id || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load paper detail');
     } finally {
@@ -129,15 +132,26 @@ export function PaperDetailPage() {
   };
 
   const handleSubmitRating = async () => {
-    if (!paper || userRating === 0) return;
+    if (!paper) return;
 
     setError('');
     setMessage('');
+
+    if (userComment.trim() && userRating === 0) {
+      setError('Please choose a star rating before submitting a comment.');
+      return;
+    }
+
+    if (userRating === 0) {
+      setError('Please choose a star rating to submit your review.');
+      return;
+    }
+
     setIsSubmittingRating(true);
 
     try {
-      await apiRequest(`/ratings/papers/${paper._id}`, {
-        method: 'POST',
+      await apiRequest(existingRatingId ? `/ratings/${existingRatingId}` : `/ratings/papers/${paper._id}`, {
+        method: existingRatingId ? 'PATCH' : 'POST',
         auth: true,
         body: JSON.stringify({ 
           rating: userRating,
@@ -145,12 +159,10 @@ export function PaperDetailPage() {
         }),
       });
 
-      setMessage('Rating and comment submitted successfully.');
-      setUserComment('');
+      setMessage(existingRatingId ? 'Review updated successfully.' : 'Review submitted successfully.');
       await loadPaper();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to submit rating');
-      setUserRating(0);
     } finally {
       setIsSubmittingRating(false);
     }
@@ -317,11 +329,10 @@ export function PaperDetailPage() {
 
               {paper.pdfPath && !isAdmin && (
                 <div className="bg-white rounded-lg border border-border shadow-sm p-8">
-                  <h3 className="text-foreground mb-4">Đánh giá bài báo</h3>
-                  
-                  {/* Star Rating */}
+                  <h3 className="text-foreground mb-4">Review this paper</h3>
+
                   <div className="mb-6">
-                    <p className="text-sm text-muted-foreground mb-3">Chọn số sao:</p>
+                    <p className="text-sm text-muted-foreground mb-3">Choose a star rating:</p>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -330,7 +341,6 @@ export function PaperDetailPage() {
                           onMouseEnter={() => setHoveredRating(star)}
                           onMouseLeave={() => setHoveredRating(0)}
                           className="transition-transform hover:scale-110"
-                          disabled={ratings.some(r => r.user?._id === currentUser?._id)}
                         >
                           <Star
                             size={40}
@@ -345,20 +355,19 @@ export function PaperDetailPage() {
                     </div>
                     {userRating > 0 && (
                       <p className="text-sm text-foreground mt-2">
-                        Bạn đã chọn: {userRating} sao
+                        Selected rating: {userRating} stars
                       </p>
                     )}
                   </div>
 
-                  {/* Comment Section */}
-                  {userRating > 0 && !ratings.some(r => r.user?._id === currentUser?._id) && (
+                  {!isAdmin && (
                     <div className="space-y-3 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <label className="block">
-                        <p className="text-sm font-medium text-foreground mb-2">Thêm bình luận (tùy chọn):</p>
+                        <p className="text-sm font-medium text-foreground mb-2">Comment:</p>
                         <textarea
                           value={userComment}
                           onChange={(e) => setUserComment(e.target.value)}
-                          placeholder="Chia sẻ ý kiến của bạn về bài báo này..."
+                          placeholder="Share your thoughts about this paper..."
                           rows={4}
                           maxLength={500}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-foreground bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -372,25 +381,28 @@ export function PaperDetailPage() {
                           disabled={isSubmittingRating}
                           className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Send size={16} />
-                          {isSubmittingRating ? 'Đang gửi...' : 'Gửi đánh giá'}
+                          {isSubmittingRating ? 'Submitting...' : existingRatingId ? 'Update review' : 'Submit review'}
                         </button>
                         <button
                           onClick={() => {
-                            setUserRating(0);
-                            setUserComment('');
+                            const savedRating = ratings.find(r => r.user?._id === currentUser?._id);
+                            setUserRating(savedRating?.rating || 0);
+                            setUserComment(savedRating?.comment || '');
+                            setError('');
+                            setMessage('');
                           }}
                           className="px-6 py-2 border border-gray-300 rounded-lg text-foreground hover:bg-gray-100 transition-colors"
                         >
-                          Hủy
+                          Cancel
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {ratings.some(r => r.user?._id === currentUser?._id) && (
+                  {existingRatingId && (
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-800">✓ Bạn đã đánh giá bài báo này rồi.</p>
+                      <p className="text-sm text-blue-800">You can update your submitted star rating and comment.</p>
+                      <p className="text-sm text-blue-800">You have already reviewed this paper.</p>
                     </div>
                   )}
                 </div>
