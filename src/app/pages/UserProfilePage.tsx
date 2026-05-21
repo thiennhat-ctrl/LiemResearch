@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { User, Mail, Building2, CreditCard, Trophy, FileText, Star, Edit } from 'lucide-react';
-import { apiRequest, AuthUser, clearAuth, getStoredUser, saveAuth } from '../lib/api';
+import { apiRequest, AuthUser, clearAuth, getStoredUser, getToken, saveAuth } from '../lib/api';
 
 type ProfileForm = {
   fullName: string;
@@ -57,7 +57,8 @@ export function UserProfilePage() {
           setProfile(nextProfile);
           setEditForm(nextProfile);
           setRankingStats(rankingData.ranking);
-          localStorage.setItem('user', JSON.stringify(profileData.user));
+          const token = getToken();
+          if (token) saveAuth(token, profileData.user);
           setError('');
         }
       } catch (err) {
@@ -92,7 +93,7 @@ export function UserProfilePage() {
           studentId: editForm.studentId,
         }),
       });
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const nextProfile = mapUserToProfile(data.user);
 
       if (token) saveAuth(token, data.user);

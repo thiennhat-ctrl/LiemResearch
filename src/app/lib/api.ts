@@ -17,29 +17,29 @@ type RequestOptions = RequestInit & {
 };
 
 export function getToken() {
-  return localStorage.getItem('token');
+  return sessionStorage.getItem('token');
 }
 
 export function getStoredUser(): AuthUser | null {
-  const rawUser = localStorage.getItem('user');
+  const rawUser = sessionStorage.getItem('user');
   if (!rawUser) return null;
 
   try {
     return JSON.parse(rawUser) as AuthUser;
   } catch {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     return null;
   }
 }
 
 export function saveAuth(token: string, user: AuthUser) {
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(user));
+  sessionStorage.setItem('token', token);
+  sessionStorage.setItem('user', JSON.stringify(user));
 }
 
 export function clearAuth() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
