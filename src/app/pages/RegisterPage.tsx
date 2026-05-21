@@ -13,6 +13,10 @@ export function RegisterPage() {
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const apiBaseUrl = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const session = getAuthSession();
@@ -30,7 +34,33 @@ export function RegisterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/login');
+    setError('');
+    setIsLoading(true);
+
+    fetch(`${apiBaseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error || data.message?.toLowerCase().includes('error')) {
+          throw new Error(data.message || 'Registration failed');
+        }
+        navigate('/login', { replace: true });
+      })
+      .catch((err) => {
+        if (err instanceof TypeError && /fetch/i.test(err.message)) {
+          setError(`Failed to fetch. Hãy kiểm tra backend đang chạy tại ${apiBaseUrl}.`);
+        } else {
+          setError(err instanceof Error ? err.message : 'Registration failed');
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -128,10 +158,15 @@ export function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors"
+              disabled={isLoading}
+              className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register
+              {isLoading ? 'Registering...' : 'Register'}
             </button>
+
+            {error && (
+              <p className="text-red-600 text-center text-sm">{error}</p>
+            )}
           </form>
 
           <div className="mt-6 text-center">
