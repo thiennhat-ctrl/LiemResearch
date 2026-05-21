@@ -17,6 +17,8 @@ const paperSchema = new mongoose.Schema(
     pdfPath: { type: String },
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     uploadedAt: { type: Date },
+    averageRating: { type: Number, default: 0 },
+    totalRatings: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
