@@ -12,7 +12,35 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsPath = path.resolve(__dirname, '../uploads');
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+const configuredOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const configuredOriginSet = new Set(configuredOrigins);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow non-browser clients (curl/postman) with no Origin header
+      if (!origin) return callback(null, true);
+
+      if (configuredOriginSet.has(origin)) return callback(null, true);
+
+      // Dev-friendly: allow any localhost/127.0.0.1 origin regardless of port
+      try {
+        const url = new URL(origin);
+        if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+          return callback(null, true);
+        }
+      } catch {
+        // fall through
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+  })
+);
 app.use(express.json());
 app.use('/uploads', express.static(uploadsPath));
 
