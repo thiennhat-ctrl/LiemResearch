@@ -20,6 +20,10 @@ export function RequestPaperPage() {
     year: '',
   });
   const [duplicateWarning, setDuplicateWarning] = useState<string>('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const apiBaseUrl = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL || 'http://localhost:5000';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -46,16 +50,58 @@ export function RequestPaperPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
     if (duplicateWarning) {
       const confirmed = window.confirm(
         'This paper may already exist in the system. Do you still want to submit the request?'
       );
-      if (!confirmed) return;
+      if (!confirmed) {
+        setIsLoading(false);
+        return;
+      }
     }
 
-    alert('Paper request submitted successfully!');
-    navigate('/my-requests');
+    const keywordsList = formData.keywords
+      .split(',')
+      .map(k => k.trim())
+      .filter(Boolean);
+
+    const requestBody = {
+      title: formData.title,
+      doi: formData.doi || undefined,
+      paperLink: formData.link || undefined,
+      abstract: formData.abstract || undefined,
+      keywords: keywordsList,
+      publishedYear: formData.year ? parseInt(formData.year) : undefined,
+    };
+
+    fetch(`${apiBaseUrl}/api/papers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error || data.message?.toLowerCase().includes('error')) {
+          throw new Error(data.message || 'Failed to submit paper request');
+        }
+        navigate('/my-requests', { replace: true });
+      })
+      .catch((err) => {
+        if (err instanceof TypeError && /fetch/i.test(err.message)) {
+          setError(`Failed to fetch. Hãy kiểm tra backend đang chạy tại ${apiBaseUrl}.`);
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to submit paper request');
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -81,6 +127,12 @@ export function RequestPaperPage() {
             {duplicateWarning && (
               <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg">
                 <p className="text-amber-800">{duplicateWarning}</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-300 rounded-lg">
+                <p className="text-red-800">{error}</p>
               </div>
             )}
 
@@ -166,9 +218,10 @@ export function RequestPaperPage() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                  disabled={isLoading}
+                  className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit Request
+                  {isLoading ? 'Submitting...' : 'Submit Request'}
                 </button>
                 <button
                   type="button"
