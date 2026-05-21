@@ -8,7 +8,8 @@ dotenv.config();
 await connectDb();
 
 const adminEmail = 'admin@liemresearch.com';
-const passwordHash = await bcrypt.hash('Admin123456', 10);
+const password = 'Admin123456';
+const passwordHash = await bcrypt.hash(password, 10);
 
 const admin = await User.findOneAndUpdate(
   { email: adminEmail },
@@ -23,8 +24,11 @@ const admin = await User.findOneAndUpdate(
   { upsert: true, new: true }
 );
 
-console.log('Admin account is ready:');
-console.log(`Email: ${admin.email}`);
-console.log('Password: Admin123456');
+console.log('\n' + '='.repeat(50));
+console.log('✅ Admin account is ready!');
+console.log('='.repeat(50));
+console.log(`📧 Email:    ${admin.email}`);
+console.log(`🔑 Password: ${password}`);
+console.log('='.repeat(50) + '\n');
 
 process.exit(0);
