@@ -1,5 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export type AuthUser = {
   _id: string;
@@ -52,9 +51,6 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (options.auth) {
     const token = getToken();
-    if (!token) {
-      throw new Error('Please log in to continue');
-    }
     if (token) headers.set('Authorization', `Bearer ${token}`);
   }
 
@@ -66,10 +62,6 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    if (response.status === 401) {
-      clearAuth();
-    }
-
     throw new Error(data.message || 'Request failed');
   }
 
