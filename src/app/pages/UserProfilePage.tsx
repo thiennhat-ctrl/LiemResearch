@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
-import { User, Mail, Building2, CreditCard, Trophy, Upload, Download, Star, Edit } from 'lucide-react';
+import { User, Mail, Building2, CreditCard, Trophy, FileText, Star, Edit } from 'lucide-react';
 import { apiRequest, AuthUser, clearAuth, getStoredUser, saveAuth } from '../lib/api';
 
 type ProfileForm = {
@@ -9,6 +9,13 @@ type ProfileForm = {
   university: string;
   studentId: string;
   memberSince: string;
+};
+
+type RankingStats = {
+  rank: number;
+  requestedPapers: number;
+  ratingsGiven: number;
+  points: number;
 };
 
 function mapUserToProfile(user: AuthUser): ProfileForm {
@@ -33,27 +40,24 @@ export function UserProfilePage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
-  const stats = {
-    uploadedPapers: 45,
-    downloadedPapers: 123,
-    rating: 4.8,
-    points: 1250,
-    rank: 1,
-  };
+  const [rankingStats, setRankingStats] = useState<RankingStats | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadProfile() {
       try {
-        const data = await apiRequest<{ user: AuthUser }>('/auth/me', { auth: true });
-        const nextProfile = mapUserToProfile(data.user);
+        const [profileData, rankingData] = await Promise.all([
+          apiRequest<{ user: AuthUser }>('/auth/me', { auth: true }),
+          apiRequest<{ ranking: RankingStats }>('/rankings/me', { auth: true }).catch(() => ({ ranking: null })),
+        ]);
+        const nextProfile = mapUserToProfile(profileData.user);
 
         if (isMounted) {
           setProfile(nextProfile);
           setEditForm(nextProfile);
-          localStorage.setItem('user', JSON.stringify(data.user));
+          setRankingStats(rankingData.ranking);
+          localStorage.setItem('user', JSON.stringify(profileData.user));
           setError('');
         }
       } catch (err) {
@@ -141,26 +145,26 @@ export function UserProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg border border-border shadow-sm p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-muted-foreground">Uploads</span>
-                <Upload size={20} className="text-green-600" />
+                <span className="text-muted-foreground">Requests</span>
+                <FileText size={20} className="text-green-600" />
               </div>
-              <h3 className="text-foreground">{stats.uploadedPapers}</h3>
+              <h3 className="text-foreground">{rankingStats?.requestedPapers ?? 0}</h3>
             </div>
 
             <div className="bg-white rounded-lg border border-border shadow-sm p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-muted-foreground">Downloads</span>
-                <Download size={20} className="text-blue-600" />
-              </div>
-              <h3 className="text-foreground">{stats.downloadedPapers}</h3>
-            </div>
-
-            <div className="bg-white rounded-lg border border-border shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-muted-foreground">Rating</span>
+                <span className="text-muted-foreground">Ratings Given</span>
                 <Star size={20} className="text-yellow-500" />
               </div>
-              <h3 className="text-foreground">{stats.rating.toFixed(1)} / 5.0</h3>
+              <h3 className="text-foreground">{rankingStats?.ratingsGiven ?? 0}</h3>
+            </div>
+
+            <div className="bg-white rounded-lg border border-border shadow-sm p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-muted-foreground">Points</span>
+                <Trophy size={20} className="text-blue-600" />
+              </div>
+              <h3 className="text-foreground">{rankingStats?.points ?? 0}</h3>
             </div>
           </div>
 
@@ -168,8 +172,8 @@ export function UserProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 mb-1">Your Rank</p>
-                <h2 className="mb-2">#{stats.rank}</h2>
-                <p className="text-blue-100">Total Points: {stats.points}</p>
+                <h2 className="mb-2">{rankingStats ? `#${rankingStats.rank}` : 'N/A'}</h2>
+                <p className="text-blue-100">Total Points: {rankingStats?.points ?? 0}</p>
               </div>
               <Trophy size={64} className="text-yellow-300" />
             </div>

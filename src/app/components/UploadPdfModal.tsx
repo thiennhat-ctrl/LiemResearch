@@ -11,6 +11,7 @@ interface UploadPdfModalProps {
 export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: UploadPdfModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
@@ -18,8 +19,9 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
       setSelectedFile(file);
+      setError('');
     } else {
-      alert('Please select a PDF file');
+      setError('Please select a PDF file');
     }
   };
 
@@ -29,8 +31,9 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
     const file = e.dataTransfer.files?.[0];
     if (file && file.type === 'application/pdf') {
       setSelectedFile(file);
+      setError('');
     } else {
-      alert('Please select a PDF file');
+      setError('Please select a PDF file');
     }
   };
 
@@ -76,6 +79,12 @@ export function UploadPdfModal({ isOpen, onClose, onUpload, paperTitle }: Upload
         </div>
 
         <div className="p-6">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
