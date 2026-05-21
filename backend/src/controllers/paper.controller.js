@@ -21,9 +21,14 @@ function normalizeStringList(value) {
 
 export async function createPaper(req, res) {
   const { title, doi, paperLink, abstract, authors, journal, keywords, publishedYear } = req.body;
+  const normalizedKeywords = normalizeKeywords(keywords);
 
   if (!title || !doi || !paperLink || !abstract || !publishedYear) {
     return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  if (normalizedKeywords.length === 0) {
+    return res.status(400).json({ message: 'At least one keyword is required' });
   }
 
   const duplicate = await Paper.findOne({ $or: [{ doi }, { paperLink }] });
@@ -41,7 +46,7 @@ export async function createPaper(req, res) {
     abstract,
     authors: normalizeStringList(authors),
     journal,
-    keywords: normalizeKeywords(keywords),
+    keywords: normalizedKeywords,
     publishedYear,
     requestedBy: req.user._id,
   });
