@@ -4,6 +4,7 @@ import { Sidebar } from '../components/Sidebar';
 import { StatusBadge } from '../components/StatusBadge';
 import { UploadPdfModal } from '../components/UploadPdfModal';
 import { ArrowLeft, Download, Upload, Calendar, User, Link as LinkIcon, Star } from 'lucide-react';
+import { getAuthSession } from '../utils/auth';
 
 export function PaperDetailPage() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export function PaperDetailPage() {
     ratingCount: 23,
   });
 
-  const isAdmin = window.location.pathname.includes('admin');
+  const isAdmin = getAuthSession()?.role === 'admin';
 
   const handleUploadPdf = (file: File) => {
     setMockPaper({ ...mockPaper, pdfAvailable: true });

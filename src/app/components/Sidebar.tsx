@@ -1,6 +1,7 @@
 import { Home, FileText, Settings, LogOut, BarChart3, Users, Search, Trophy, User as UserIcon } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import { clearAuthSession } from '../utils/auth';
 
 interface SidebarProps {
   role?: 'user' | 'admin';
@@ -42,7 +43,15 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
             return (
               <li key={item.path}>
                 <button
-                  onClick={() => navigate(item.path)}
+                  onClick={() => {
+                    if (item.isLogout) {
+                      clearAuthSession();
+                      navigate('/login', { replace: true });
+                      return;
+                    }
+
+                    navigate(item.path);
+                  }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     item.isLogout
                       ? 'text-red-600 hover:bg-red-50'

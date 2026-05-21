@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Building2, CreditCard, Mail, Lock } from 'lucide-react';
 import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import { getAuthSession } from '../utils/auth';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -12,6 +13,13 @@ export function RegisterPage() {
     email: '',
     password: '',
   });
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (!session) return;
+
+    navigate(session.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

@@ -1,18 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Mail, Lock } from 'lucide-react';
 import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
+import { getAuthSession, setAuthSession } from '../utils/auth';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    const session = getAuthSession();
+    if (!session) return;
+
+    navigate(session.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+  }, [navigate]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.includes('admin')) {
+      setAuthSession({ role: 'admin', email });
       navigate('/admin');
     } else {
+      setAuthSession({ role: 'user', email });
       navigate('/dashboard');
     }
   };

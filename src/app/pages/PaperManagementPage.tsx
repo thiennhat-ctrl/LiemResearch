@@ -271,7 +271,7 @@ export function PaperManagementPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => navigate(`/paper/${paper.id}`)}
+                            onClick={() => navigate(`/admin/paper/${paper.id}`)}
                             className="p-2 hover:bg-muted rounded-lg transition-colors"
                             title="View details"
                           >

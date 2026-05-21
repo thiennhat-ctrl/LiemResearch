@@ -10,6 +10,7 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { PaperManagementPage } from './pages/PaperManagementPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { PaperDetailPage } from './pages/PaperDetailPage';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -18,15 +19,22 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<UserDashboard />} />
-        <Route path="/my-requests" element={<MyRequestsPage />} />
-        <Route path="/rankings" element={<UserRankingPage />} />
-        <Route path="/profile" element={<UserProfilePage />} />
-        <Route path="/request-paper" element={<RequestPaperPage />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/papers" element={<PaperManagementPage />} />
-        <Route path="/admin/users" element={<UserManagementPage />} />
-        <Route path="/paper/:id" element={<PaperDetailPage />} />
+
+        <Route element={<ProtectedRoute requiredRole="admin" />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/papers" element={<PaperManagementPage />} />
+          <Route path="/admin/users" element={<UserManagementPage />} />
+          <Route path="/admin/paper/:id" element={<PaperDetailPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute requiredRole="user" />}>
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/my-requests" element={<MyRequestsPage />} />
+          <Route path="/rankings" element={<UserRankingPage />} />
+          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/request-paper" element={<RequestPaperPage />} />
+          <Route path="/paper/:id" element={<PaperDetailPage />} />
+        </Route>
       </Routes>
     </Router>
   );
