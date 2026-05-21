@@ -17,11 +17,15 @@ const paperSchema = new mongoose.Schema(
     pdfPath: { type: String },
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     uploadedAt: { type: Date },
+    averageRating: { type: Number, default: 0, min: 0, max: 5 },
+    totalRatings: { type: Number, default: 0 },
+    views: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
 paperSchema.index({ doi: 1 }, { unique: true });
 paperSchema.index({ paperLink: 1 }, { unique: true });
+paperSchema.index({ title: 'text', abstract: 'text', keywords: 'text' });
 
 export const Paper = mongoose.model('Paper', paperSchema);
