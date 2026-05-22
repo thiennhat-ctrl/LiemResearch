@@ -4,7 +4,7 @@ import { Sidebar } from '../components/Sidebar';
 import { StatusBadge } from '../components/StatusBadge';
 import { UploadPdfModal } from '../components/UploadPdfModal';
 import { ArrowLeft, Download, Upload, Calendar, User, Link as LinkIcon, Star, X } from 'lucide-react';
-import { apiRequest, getStoredUser } from '../lib/api';
+import { apiRequest, getStoredUser, getToken } from '../lib/api';
 import { PublicPaper } from '../lib/papers';
 
 type DetailPaper = PublicPaper & {
@@ -142,7 +142,19 @@ export function PaperDetailPage() {
         method: 'POST',
         auth: true,
       });
-      window.open(`http://localhost:5000${data.downloadUrl}`, '_blank');
+
+      const fileUrl = `http://localhost:5000${data.downloadUrl}`;
+      const token = getToken();
+      const resp = await fetch(fileUrl, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${paper.doi || paper.title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to download PDF');
     }
