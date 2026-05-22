@@ -4,6 +4,10 @@ import { syncUserPoints } from '../utils/points.js';
 
 const allowedStatuses = ['pending', 'approved', 'rejected', 'downloaded', 'not-downloaded'];
 
+function normalizePaperStatus(status) {
+  return status === 'approved' ? 'not-downloaded' : status;
+}
+
 function isInvalidPaperId(id) {
   return !mongoose.Types.ObjectId.isValid(id);
 }
@@ -112,7 +116,7 @@ export async function updatePaperStatus(req, res) {
     return res.status(400).json({ message: 'Invalid status' });
   }
 
-  const paper = await Paper.findByIdAndUpdate(req.params.id, { status }, { new: true });
+  const paper = await Paper.findByIdAndUpdate(req.params.id, { status: normalizePaperStatus(status) }, { new: true });
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
   res.json({ paper });
@@ -166,6 +170,10 @@ export async function updatePaper(req, res) {
 
   if (updates.status !== undefined && !allowedStatuses.includes(updates.status)) {
     return res.status(400).json({ message: 'Invalid status' });
+  }
+
+  if (updates.status !== undefined) {
+    updates.status = normalizePaperStatus(updates.status);
   }
 
   if (updates.doi || updates.paperLink) {

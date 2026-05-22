@@ -111,7 +111,6 @@ export function EditPaperModal({ isOpen, onClose, onSave, paper }: EditPaperModa
                 className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
               >
                 <option value="pending">Pending Review</option>
-                <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
                 <option value="downloaded">Downloaded</option>
                 <option value="not-downloaded">Not Downloaded</option>

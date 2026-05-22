@@ -271,7 +271,6 @@ export function PaperManagementPage() {
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending Review</option>
-                  <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                   <option value="downloaded">Downloaded</option>
                   <option value="not-downloaded">Not Downloaded</option>
@@ -347,7 +346,7 @@ export function PaperManagementPage() {
                           {paper.status === 'pending' && (
                             <>
                               <button
-                                onClick={() => updatePaperStatus(paper._id, 'approved')}
+                                onClick={() => updatePaperStatus(paper._id, 'not-downloaded')}
                                 className="p-2 hover:bg-green-100 rounded-lg transition-colors"
                                 title="Approve request"
                               >
@@ -363,7 +362,7 @@ export function PaperManagementPage() {
                             </>
                           )}
 
-                          {paper.status === 'approved' && (
+                          {(paper.status === 'not-downloaded' || paper.status === 'approved') && (
                             <button
                               onClick={() => handleOpenUploadModal(paper)}
                               className="p-2 hover:bg-green-100 rounded-lg transition-colors"
