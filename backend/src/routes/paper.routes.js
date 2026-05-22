@@ -92,7 +92,7 @@ router.get('/my-requests', requireAuth, getMyPapers);
  *         name: status
  *         schema:
  *           type: string
- *           enum: [pending, approved, rejected, downloaded, not-downloaded]
+ *           enum: [pending, rejected, downloaded, not-downloaded]
  *       - in: query
  *         name: search
  *         schema:
@@ -174,7 +174,7 @@ router.get('/:id', requireAuth, getPaperById);
  *                 example: 2026
  *               status:
  *                 type: string
- *                 enum: [pending, approved, rejected, downloaded, not-downloaded]
+ *                 enum: [pending, rejected, downloaded, not-downloaded]
  *                 example: pending
  *     responses:
  *       200:
@@ -205,8 +205,8 @@ router.patch('/:id', requireAuth, requireRole('admin'), updatePaper);
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [pending, approved, rejected, downloaded, not-downloaded]
- *                 example: approved
+ *                 enum: [pending, rejected, downloaded, not-downloaded]
+ *                 example: not-downloaded
  *     responses:
  *       200:
  *         description: Status updated

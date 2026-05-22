@@ -57,7 +57,13 @@ export function RequestPaperPage() {
     }
   };
 
-  const isFormInvalid = !formData.title || !formData.doi || !formData.link || !formData.abstract || !formData.year;
+  const isFormInvalid =
+    !formData.title.trim() ||
+    !formData.doi.trim() ||
+    !formData.link.trim() ||
+    !formData.abstract.trim() ||
+    !formData.keywords.trim() ||
+    !formData.year;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -162,7 +168,7 @@ export function RequestPaperPage() {
               </div>
 
               <div>
-                <label className="block text-foreground mb-2">Keywords</label>
+                <label className="block text-foreground mb-2">Keywords *</label>
                 <input
                   type="text"
                   name="keywords"
@@ -170,6 +176,7 @@ export function RequestPaperPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
                   placeholder="machine learning, neural networks, classification"
+                  required
                 />
                 <p className="text-muted-foreground mt-2">Separate keywords with commas</p>
               </div>

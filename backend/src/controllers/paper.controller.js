@@ -1,7 +1,12 @@
 import mongoose from 'mongoose';
 import { Paper } from '../models/Paper.js';
+import { syncUserPoints } from '../utils/points.js';
 
 const allowedStatuses = ['pending', 'approved', 'rejected', 'downloaded', 'not-downloaded'];
+
+function normalizePaperStatus(status) {
+  return status === 'approved' ? 'not-downloaded' : status;
+}
 
 function isInvalidPaperId(id) {
   return !mongoose.Types.ObjectId.isValid(id);
@@ -21,9 +26,14 @@ function normalizeStringList(value) {
 
 export async function createPaper(req, res) {
   const { title, doi, paperLink, abstract, authors, journal, keywords, publishedYear } = req.body;
+  const normalizedKeywords = normalizeKeywords(keywords);
 
   if (!title || !doi || !paperLink || !abstract || !publishedYear) {
     return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  if (normalizedKeywords.length === 0) {
+    return res.status(400).json({ message: 'At least one keyword is required' });
   }
 
   const duplicate = await Paper.findOne({ $or: [{ doi }, { paperLink }] });
@@ -41,10 +51,12 @@ export async function createPaper(req, res) {
     abstract,
     authors: normalizeStringList(authors),
     journal,
-    keywords: normalizeKeywords(keywords),
+    keywords: normalizedKeywords,
     publishedYear,
     requestedBy: req.user._id,
   });
+
+  await syncUserPoints(req.user._id);
 
   res.status(201).json({ paper });
 }
@@ -104,7 +116,7 @@ export async function updatePaperStatus(req, res) {
     return res.status(400).json({ message: 'Invalid status' });
   }
 
-  const paper = await Paper.findByIdAndUpdate(req.params.id, { status }, { new: true });
+  const paper = await Paper.findByIdAndUpdate(req.params.id, { status: normalizePaperStatus(status) }, { new: true });
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
   res.json({ paper });
@@ -160,6 +172,10 @@ export async function updatePaper(req, res) {
     return res.status(400).json({ message: 'Invalid status' });
   }
 
+  if (updates.status !== undefined) {
+    updates.status = normalizePaperStatus(updates.status);
+  }
+
   if (updates.doi || updates.paperLink) {
     const duplicateFilters = [];
 
@@ -199,6 +215,8 @@ export async function deletePaper(req, res) {
   const paper = await Paper.findByIdAndDelete(req.params.id);
 
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
+
+  await syncUserPoints(paper.requestedBy);
 
   res.json({ message: 'Paper deleted successfully', paperId: paper._id });
 }

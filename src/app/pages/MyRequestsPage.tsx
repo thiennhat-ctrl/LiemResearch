@@ -27,7 +27,6 @@ const filters: Array<{
 }> = [
   { value: 'all', label: 'Total Requests', iconBgClass: 'bg-blue-100', iconClass: 'text-blue-600' },
   { value: 'pending', label: 'Pending', iconBgClass: 'bg-amber-100', iconClass: 'text-amber-600' },
-  { value: 'approved', label: 'Approved', iconBgClass: 'bg-blue-100', iconClass: 'text-blue-600' },
   { value: 'downloaded', label: 'Downloaded', iconBgClass: 'bg-green-100', iconClass: 'text-green-600' },
   { value: 'not-downloaded', label: 'Not Downloaded', iconBgClass: 'bg-gray-100', iconClass: 'text-gray-600' },
   { value: 'rejected', label: 'Rejected', iconBgClass: 'bg-red-100', iconClass: 'text-red-600' },

@@ -53,7 +53,7 @@ export function AdminDashboard() {
   const totalRequests = papers.length;
   const downloadedPapers = papers.filter((paper) => paper.status === 'downloaded').length;
   const pendingPapers = papers.filter((paper) => paper.status === 'pending').length;
-  const notDownloadedPapers = papers.filter((paper) => paper.status === 'not-downloaded').length;
+  const notDownloadedPapers = papers.filter((paper) => paper.status === 'not-downloaded' || paper.status === 'approved').length;
   const recentRequests = papers.slice(0, 4);
 
   const getPercent = (count: number) => {
