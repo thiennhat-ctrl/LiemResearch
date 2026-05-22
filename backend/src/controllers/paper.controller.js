@@ -4,7 +4,11 @@ import mongoose from 'mongoose';
 import { fileURLToPath } from 'url';
 import { Paper } from '../models/Paper.js';
 import { syncUserPoints } from '../utils/points.js';
-import { notifyAdminsPaperSubmitted, notifyUsersPaperApproved } from '../utils/notification.js';
+import {
+  notifyAdminsPaperPdfUploaded,
+  notifyAdminsPaperSubmitted,
+  notifyUsersPaperApproved,
+} from '../utils/notification.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -391,6 +395,19 @@ export async function uploadPaperPdf(req, res) {
   }
 
   await syncUserPoints(paper.uploadedBy);
+
+  if (req.user.role === 'user') {
+    try {
+      await notifyAdminsPaperPdfUploaded({
+        paperId: paper._id,
+        paperTitle: paper.title,
+        uploaderName: req.user.fullName,
+        actorId: req.user._id,
+      });
+    } catch (error) {
+      console.error('Failed to create admin notification for PDF upload:', error);
+    }
+  }
 
   res.json({ paper });
 }

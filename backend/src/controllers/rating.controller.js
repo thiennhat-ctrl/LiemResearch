@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 import { Paper } from '../models/Paper.js';
 import { Rating } from '../models/Rating.js';
 import { syncUserPoints } from '../utils/points.js';
+import {
+  notifyAdminsPaperRated,
+  notifyAdminsPaperRatingDeleted,
+  notifyAdminsPaperRatingUpdated,
+} from '../utils/notification.js';
 
 function isInvalidId(id) {
   return !mongoose.Types.ObjectId.isValid(id);
@@ -64,6 +69,20 @@ export async function createRating(req, res) {
 
   await refreshPaperRatingStats(paperId);
   await syncUserPoints(req.user._id);
+
+  if (req.user.role === 'user') {
+    try {
+      await notifyAdminsPaperRated({
+        paperId: paper._id,
+        paperTitle: paper.title,
+        raterName: req.user.fullName,
+        actorId: req.user._id,
+        rating: normalizedRating,
+      });
+    } catch (error) {
+      console.error('Failed to create admin notification for paper rating:', error);
+    }
+  }
 
   const populatedRating = await Rating.findById(createdRating._id).populate('user', 'fullName university');
 
@@ -131,6 +150,20 @@ export async function updateRating(req, res) {
   await existingRating.save();
   await refreshPaperRatingStats(existingRating.paper);
 
+  if (req.user.role === 'user') {
+    try {
+      const paper = await Paper.findById(existingRating.paper).select('title');
+      await notifyAdminsPaperRatingUpdated({
+        paperId: existingRating.paper,
+        paperTitle: paper?.title || 'Unknown paper',
+        raterName: req.user.fullName,
+        actorId: req.user._id,
+      });
+    } catch (error) {
+      console.error('Failed to create admin notification for rating update:', error);
+    }
+  }
+
   const updatedRating = await Rating.findById(existingRating._id).populate('user', 'fullName university');
 
   res.json({ rating: updatedRating });
@@ -152,9 +185,23 @@ export async function deleteRating(req, res) {
 
   const paperId = rating.paper;
   const userId = rating.user;
+  const paper = await Paper.findById(paperId).select('title');
   await Rating.findByIdAndDelete(rating._id);
   await refreshPaperRatingStats(paperId);
   await syncUserPoints(userId);
+
+  if (req.user.role === 'user') {
+    try {
+      await notifyAdminsPaperRatingDeleted({
+        paperId,
+        paperTitle: paper?.title || 'Unknown paper',
+        raterName: req.user.fullName,
+        actorId: req.user._id,
+      });
+    } catch (error) {
+      console.error('Failed to create admin notification for rating deletion:', error);
+    }
+  }
 
   res.json({ message: 'Rating deleted successfully', ratingId: rating._id });
 }

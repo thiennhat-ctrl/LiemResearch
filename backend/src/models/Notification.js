@@ -7,7 +7,14 @@ const notificationSchema = new mongoose.Schema(
     paper: { type: mongoose.Schema.Types.ObjectId, ref: 'Paper', required: true, index: true },
     type: {
       type: String,
-      enum: ['paper_submitted', 'paper_approved'],
+      enum: [
+        'paper_submitted',
+        'paper_pdf_uploaded',
+        'paper_rated',
+        'paper_rating_updated',
+        'paper_rating_deleted',
+        'paper_approved',
+      ],
       required: true,
     },
     title: { type: String, required: true, trim: true },

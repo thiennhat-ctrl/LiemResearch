@@ -52,6 +52,62 @@ export async function notifyAdminsPaperSubmitted({ paperId, paperTitle, requeste
   );
 }
 
+export async function notifyAdminsPaperPdfUploaded({ paperId, paperTitle, uploaderName, actorId }) {
+  return createNotificationsForUserFilter(
+    { role: 'admin' },
+    {
+      actor: actorId,
+      paper: paperId,
+      type: 'paper_pdf_uploaded',
+      title: 'Paper PDF uploaded',
+      message: `${uploaderName} uploaded a PDF for: ${paperTitle}`,
+    },
+    'admin'
+  );
+}
+
+export async function notifyAdminsPaperRated({ paperId, paperTitle, raterName, actorId, rating }) {
+  return createNotificationsForUserFilter(
+    { role: 'admin' },
+    {
+      actor: actorId,
+      paper: paperId,
+      type: 'paper_rated',
+      title: 'Paper rated',
+      message: `${raterName} rated "${paperTitle}" ${rating}/5`,
+    },
+    'admin'
+  );
+}
+
+export async function notifyAdminsPaperRatingUpdated({ paperId, paperTitle, raterName, actorId }) {
+  return createNotificationsForUserFilter(
+    { role: 'admin' },
+    {
+      actor: actorId,
+      paper: paperId,
+      type: 'paper_rating_updated',
+      title: 'Paper rating updated',
+      message: `${raterName} updated a rating for: ${paperTitle}`,
+    },
+    'admin'
+  );
+}
+
+export async function notifyAdminsPaperRatingDeleted({ paperId, paperTitle, raterName, actorId }) {
+  return createNotificationsForUserFilter(
+    { role: 'admin' },
+    {
+      actor: actorId,
+      paper: paperId,
+      type: 'paper_rating_deleted',
+      title: 'Paper rating deleted',
+      message: `${raterName} deleted a rating for: ${paperTitle}`,
+    },
+    'admin'
+  );
+}
+
 export async function notifyUsersPaperApproved({ paperId, paperTitle, requesterName, actorId }) {
   return createNotificationsForUserFilter({ role: 'user' }, {
     actor: actorId,

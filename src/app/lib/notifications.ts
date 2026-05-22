@@ -16,7 +16,13 @@ export type AppNotification = {
   _id: string;
   actor: NotificationActor;
   paper: NotificationPaper;
-  type: 'paper_submitted' | 'paper_approved';
+  type:
+    | 'paper_submitted'
+    | 'paper_pdf_uploaded'
+    | 'paper_rated'
+    | 'paper_rating_updated'
+    | 'paper_rating_deleted'
+    | 'paper_approved';
   title: string;
   message: string;
   isRead: boolean;
