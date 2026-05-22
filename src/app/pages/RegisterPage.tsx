@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { User, Building2, CreditCard, Mail, Lock } from 'lucide-react';
 import logo from '../../imports/ChatGPT_Image_10_47_26_20_thg_5__2026-removebg-preview.png';
-import { apiRequest, AuthUser, saveAuth } from '../lib/api';
+import { apiRequest, AuthUser } from '../lib/api';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -41,8 +41,8 @@ export function RegisterPage() {
         body: JSON.stringify(formData),
       });
 
-      saveAuth(data.token, data.user);
-      navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
+      // After successful registration, redirect user to login page
+      navigate('/login', { state: { registered: true, email: formData.email } });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Register failed');
     } finally {
