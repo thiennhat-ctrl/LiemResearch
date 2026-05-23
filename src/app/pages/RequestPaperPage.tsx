@@ -92,7 +92,7 @@ export function RequestPaperPage() {
     !formData.year;
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-surface-request bg-fixed">
       <Sidebar role="user" />
 
       <div className="flex-1 p-8">

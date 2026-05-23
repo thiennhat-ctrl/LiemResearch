@@ -3,6 +3,11 @@
 :root {
   --font-size: 16px;
   --background: #f8f9fa;
+  --surface-feed: linear-gradient(180deg, #f1f3f7 0%, #f7f7f8 48%, #ffffff 100%);
+  --surface-auth: radial-gradient(circle at top, #eef4ff 0%, #f8fbff 42%, #ffffff 100%);
+  --surface-workspace: linear-gradient(180deg, #eef5ff 0%, #f6f9ff 45%, #ffffff 100%);
+  --surface-request: linear-gradient(180deg, #eefbf4 0%, #f8fcf8 48%, #ffffff 100%);
+  --surface-achievement: linear-gradient(180deg, #f1efff 0%, #f8f7ff 46%, #ffffff 100%);
   --foreground: #1e293b;
   --card: #ffffff;
   --card-foreground: #1e293b;
@@ -43,6 +48,11 @@
 
 .dark {
   --background: oklch(0.145 0 0);
+  --surface-feed: oklch(0.145 0 0);
+  --surface-auth: oklch(0.145 0 0);
+  --surface-workspace: oklch(0.145 0 0);
+  --surface-request: oklch(0.145 0 0);
+  --surface-achievement: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -80,6 +90,11 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface-feed: var(--surface-feed);
+  --color-surface-auth: var(--surface-auth);
+  --color-surface-workspace: var(--surface-workspace);
+  --color-surface-request: var(--surface-request);
+  --color-surface-achievement: var(--surface-achievement);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);

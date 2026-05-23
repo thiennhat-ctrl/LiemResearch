@@ -47,7 +47,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-surface-auth bg-fixed">
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3">
           <button

@@ -86,7 +86,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-surface-feed bg-fixed">
       <header className="sticky top-0 z-40 border-b border-border bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3">
           <button

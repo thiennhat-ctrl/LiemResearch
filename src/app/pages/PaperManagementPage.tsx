@@ -238,7 +238,7 @@ export function PaperManagementPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-surface-workspace bg-fixed">
       <Sidebar role="admin" />
 
       <div className="flex-1 p-8">
