@@ -184,7 +184,7 @@ export function SearchPapersPage() {
                       </button>
                     ) : (
                       <span className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-center whitespace-nowrap">
-                        No PDF
+                        No PDF yet
                       </span>
                     )}
                   </div>

@@ -112,8 +112,8 @@ export function EditPaperModal({ isOpen, onClose, onSave, paper }: EditPaperModa
               >
                 <option value="pending">Pending Review</option>
                 <option value="rejected">Rejected</option>
-                <option value="downloaded">Downloaded</option>
-                <option value="not-downloaded">Not Downloaded</option>
+                <option value="downloaded">PDF available</option>
+                <option value="not-downloaded">No PDF yet</option>
               </select>
             </div>
           </div>

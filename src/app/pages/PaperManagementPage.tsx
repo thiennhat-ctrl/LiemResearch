@@ -234,7 +234,7 @@ export function PaperManagementPage() {
 
   const handleExportNotDownloaded = () => {
     const notDownloaded = papers.filter((paper) => paper.status !== 'downloaded');
-    exportPapers(notDownloaded, `not_downloaded_papers_${new Date().toISOString().split('T')[0]}.csv`);
+    exportPapers(notDownloaded, `no_pdf_yet_papers_${new Date().toISOString().split('T')[0]}.csv`);
   };
 
   return (
@@ -255,7 +255,7 @@ export function PaperManagementPage() {
                 className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
               >
                 <Download size={20} />
-                Export Not Downloaded
+                Export No PDF Yet
               </button>
               <button
                 onClick={handleExportAll}
@@ -301,8 +301,8 @@ export function PaperManagementPage() {
                   <option value="all">All Status</option>
                   <option value="pending">Pending Review</option>
                   <option value="rejected">Rejected</option>
-                  <option value="downloaded">Downloaded</option>
-                  <option value="not-downloaded">Not Downloaded</option>
+                  <option value="downloaded">PDF available</option>
+                  <option value="not-downloaded">No PDF yet</option>
                 </select>
               </div>
               <div className="relative">

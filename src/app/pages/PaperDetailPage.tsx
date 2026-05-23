@@ -411,7 +411,7 @@ export function PaperDetailPage() {
                   </div>
                 ) : (
                   <div className="border border-border rounded-lg p-12 bg-muted text-center">
-                    <p className="text-muted-foreground mb-4">No PDF available yet</p>
+                    <p className="text-muted-foreground mb-4">No PDF yet</p>
                     {currentUser && !isAdmin && (
                       <button
                         onClick={() => setUploadModalOpen(true)}

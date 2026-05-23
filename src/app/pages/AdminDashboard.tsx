@@ -78,9 +78,9 @@ export function AdminDashboard() {
   };
 
   const distribution = [
-    { label: 'Downloaded', count: downloadedPapers, color: 'bg-green-500' },
+    { label: 'PDF available', count: downloadedPapers, color: 'bg-green-500' },
     { label: 'Pending', count: pendingPapers, color: 'bg-amber-500' },
-    { label: 'Not Downloaded', count: notDownloadedPapers, color: 'bg-gray-500' },
+    { label: 'No PDF yet', count: notDownloadedPapers, color: 'bg-gray-500' },
   ];
 
   return (
@@ -121,7 +121,7 @@ export function AdminDashboard() {
               color="bg-blue-500"
             />
             <StatsCard
-              title="Downloaded Papers"
+              title="PDF available"
               value={downloadedPapers}
               icon={Download}
               color="bg-green-500"

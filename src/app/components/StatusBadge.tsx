@@ -15,8 +15,8 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     pending: 'Pending',
     approved: 'Approved',
     rejected: 'Rejected',
-    downloaded: 'Downloaded',
-    'not-downloaded': 'Not Downloaded',
+    downloaded: 'PDF available',
+    'not-downloaded': 'No PDF yet',
   };
 
   return (
