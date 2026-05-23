@@ -1,6 +1,11 @@
 import { User } from '../models/User.js';
 import { syncUserPoints } from '../utils/points.js';
 
+const activeUserFilter = {
+  role: 'user',
+  $or: [{ status: 'active' }, { status: { $exists: false } }],
+};
+
 async function buildUserStats(user) {
   const stats = await syncUserPoints(user._id);
 
@@ -11,7 +16,7 @@ async function buildUserStats(user) {
 }
 
 export async function getTopUsers(req, res) {
-  const users = await User.find({ role: 'user', status: 'active' }).sort({ createdAt: 1 });
+  const users = await User.find(activeUserFilter).sort({ createdAt: 1 });
   const stats = await Promise.all(users.map(buildUserStats));
 
   const rankings = stats
@@ -26,7 +31,7 @@ export async function getTopUsers(req, res) {
 }
 
 export async function getMyRanking(req, res) {
-  const users = await User.find({ role: 'user', status: 'active' }).sort({ createdAt: 1 });
+  const users = await User.find(activeUserFilter).sort({ createdAt: 1 });
   const stats = await Promise.all(users.map(buildUserStats));
   const rankings = stats
     .sort((left, right) => right.points - left.points || left.user.fullName.localeCompare(right.user.fullName))
