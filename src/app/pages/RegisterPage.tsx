@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { User, Building2, CreditCard, Mail, Lock } from 'lucide-react';
+import { BookOpen, Building2, CheckCircle2, CreditCard, Lock, Mail, Search, ShieldCheck, User } from 'lucide-react';
 import { apiRequest, AuthUser } from '../lib/api';
 
 export function RegisterPage() {
@@ -65,12 +65,11 @@ export function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const data = await apiRequest<{ user: AuthUser; token: string }>('/auth/register', {
+      await apiRequest<{ user: AuthUser; token: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(formData),
       });
 
-      // After successful registration, redirect user to login page
       navigate('/login', { state: { registered: true, email: formData.email } });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Register failed');
@@ -80,139 +79,203 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-auth bg-fixed flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center mb-4">
-            <img src={logo} alt="LiemResearch" className="h-24 w-auto" />
-          </div>
-          <h1 className="text-foreground mb-2">Create Account</h1>
-          <p className="text-muted-foreground">Register for LiemResearch</p>
-        </div>
+    <div className="min-h-screen bg-surface-auth bg-fixed">
+      <header className="border-b border-border bg-white">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-3 text-left"
+          >
+            <img src={logo} alt="LiemResearch" className="h-10 w-auto" />
+            <span className="text-lg font-medium text-foreground">LiemResearch</span>
+          </button>
 
-        <div className="bg-white rounded-lg shadow-sm border border-border p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-foreground mb-2">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-            </div>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="relative hidden flex-1 text-left md:block"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            <span className="block w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 text-muted-foreground">
+              Search papers...
+            </span>
+          </button>
 
-            <div>
-              <label className="block text-foreground mb-2">University</label>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <input
-                  type="text"
-                  name="university"
-                  value={formData.university}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
-                  placeholder="University Name"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-foreground mb-2">Student ID</label>
-              <div className="relative">
-                <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <input
-                  type="text"
-                  name="studentId"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
-                  placeholder="STU123456"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-foreground mb-2">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
-                  placeholder="student@university.edu"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-foreground mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
-                  placeholder="Create a strong password"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-foreground mb-2">Confirm Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
-                  placeholder="Re-enter your password"
-                  required
-                />
-              </div>
-            </div>
-
+          <div className="ml-auto flex items-center gap-2">
             <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors"
+              type="button"
+              onClick={() => navigate('/login')}
+              className="rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-              {isLoading ? 'Registering...' : 'Register'}
+              Log in
             </button>
-
-            {error && (
-              <p className="text-red-600 text-center">{error}</p>
-            )}
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground">
-              Already have an account?{' '}
-              <button
-                onClick={() => navigate('/login')}
-                className="text-primary hover:underline"
-              >
-                Login here
-              </button>
-            </p>
+            <button
+              type="button"
+              className="rounded-lg bg-accent px-4 py-2 text-accent-foreground"
+            >
+              Create account
+            </button>
           </div>
         </div>
+      </header>
+
+      <main className="mx-auto flex max-w-7xl justify-center px-6 py-10">
+        <section className="w-full max-w-xl">
+          <div className="mb-8 text-center">
+            <img src={logo} alt="LiemResearch" className="mx-auto mb-6 h-20 w-auto" />
+            <h1 className="mb-2 text-foreground">Create account</h1>
+            <p className="text-muted-foreground">Join LiemResearch to request papers and track your contributions.</p>
+          </div>
+
+          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <BenefitPill icon={BookOpen} label="Request papers" />
+            <BenefitPill icon={ShieldCheck} label="Earn points" />
+            <BenefitPill icon={CheckCircle2} label="Track profile" />
+          </div>
+
+          <div className="rounded-lg border border-border bg-white p-6 shadow-sm md:p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <TextInput
+                label="Full Name"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                icon={User}
+                placeholder="Nguyen Van A"
+                autoComplete="name"
+              />
+              <TextInput
+                label="University"
+                name="university"
+                value={formData.university}
+                onChange={handleChange}
+                icon={Building2}
+                placeholder="FPT University"
+                autoComplete="organization"
+              />
+              <TextInput
+                label="Student ID"
+                name="studentId"
+                value={formData.studentId}
+                onChange={handleChange}
+                icon={CreditCard}
+                placeholder="SE190001"
+                autoComplete="off"
+              />
+              <TextInput
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                icon={Mail}
+                placeholder="student@university.edu"
+                autoComplete="email"
+              />
+              <TextInput
+                label="Password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                icon={Lock}
+                placeholder="At least 8 characters"
+                autoComplete="new-password"
+              />
+              <TextInput
+                label="Confirm Password"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                icon={Lock}
+                placeholder="Re-enter password"
+                autoComplete="new-password"
+              />
+
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-lg bg-primary py-3 text-primary-foreground transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? 'Creating account...' : 'Create account'}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-muted-foreground">
+                Already have an account?{' '}
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-primary hover:underline"
+                >
+                  Log in here
+                </button>
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function BenefitPill({
+  icon: Icon,
+  label,
+}: {
+  icon: typeof BookOpen;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-white px-3 py-3 text-sm font-medium text-muted-foreground shadow-sm">
+      <Icon size={16} className="text-primary" />
+      {label}
+    </div>
+  );
+}
+
+function TextInput({
+  label,
+  name,
+  value,
+  onChange,
+  icon: Icon,
+  placeholder,
+  type = 'text',
+  autoComplete,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  icon: typeof User;
+  placeholder: string;
+  type?: string;
+  autoComplete?: string;
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-foreground">{label}</label>
+      <div className="relative">
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required
+        />
       </div>
     </div>
   );
@@ -221,14 +284,14 @@ export function RegisterPage() {
 function validateUniversity(value: string) {
   const university = value.trim().replace(/\s+/g, ' ');
   const words = university.split(' ').filter(Boolean);
-  const hasLetters = /[a-z]/i.test(university);
-  const hasUniversityWord = /\b(university|college|institute|academy|school|đại học|dai hoc|trường|truong|fpt|hutech|rmit)\b/i.test(university);
+  const hasLetters = /\p{L}/u.test(university);
+  const hasUniversityWord = /\b(university|college|institute|academy|school|dai hoc|truong|fpt|hutech|rmit)\b|đại học|trường/i.test(university);
 
   if (university.length < 5 || !hasLetters) {
     return 'Please enter a valid university name.';
   }
 
-  if (!/^[a-z0-9\s.'&\-À-ỹ]+$/i.test(university)) {
+  if (!/^[\p{L}0-9\s.'&-]+$/u.test(university)) {
     return 'University name contains invalid characters.';
   }
 
@@ -243,11 +306,11 @@ function validateFullName(value: string) {
   const fullName = value.trim().replace(/\s+/g, ' ');
   const words = fullName.split(' ').filter(Boolean);
 
-  if (fullName.length < 4 || words.length < 2 || !/[a-zÀ-ỹ]/i.test(fullName)) {
+  if (fullName.length < 4 || words.length < 2 || !/\p{L}/u.test(fullName)) {
     return 'Please enter your full name.';
   }
 
-  if (!/^[a-z\s.'-À-ỹ]+$/i.test(fullName)) {
+  if (!/^[\p{L}\s.'-]+$/u.test(fullName)) {
     return 'Full name contains invalid characters.';
   }
 
