@@ -436,7 +436,7 @@ export function PaperDetailPage() {
                 )}
               </div>
 
-              {paper.pdfPath && !isAdmin && (
+              {!isAdmin && (
                 <div className="bg-white rounded-lg border border-border shadow-sm p-8">
                   <h3 className="text-foreground mb-4">Review this paper</h3>
 
