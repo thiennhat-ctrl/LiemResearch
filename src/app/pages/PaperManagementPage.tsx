@@ -5,6 +5,7 @@ import { AppHeader } from '../components/AppHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { UploadPdfModal } from '../components/UploadPdfModal';
 import { EditablePaper, EditPaperModal } from '../components/EditPaperModal';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Search, Upload, Download, Eye, Filter, Check, X, Edit, Trash2 } from 'lucide-react';
 import { apiRequest } from '../lib/api';
 
@@ -44,6 +45,8 @@ export function PaperManagementPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<AdminPaper | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [paperToDelete, setPaperToDelete] = useState<AdminPaper | null>(null);
+  const [isDeletingPaper, setIsDeletingPaper] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -177,23 +180,26 @@ export function PaperManagementPage() {
     }
   };
 
-  const handleDelete = async (paper: AdminPaper) => {
-    const confirmed = window.confirm(`Delete "${paper.title}"?`);
-    if (!confirmed) return;
+  const handleDelete = async () => {
+    if (!paperToDelete) return;
 
     setError('');
     setMessage('');
+    setIsDeletingPaper(true);
 
     try {
-      await apiRequest(`/papers/${paper._id}`, {
+      await apiRequest(`/papers/${paperToDelete._id}`, {
         method: 'DELETE',
         auth: true,
       });
 
-      setPapers(papers.filter((item) => item._id !== paper._id));
+      setPapers(papers.filter((item) => item._id !== paperToDelete._id));
+      setPaperToDelete(null);
       setMessage('Paper deleted successfully.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to delete paper');
+    } finally {
+      setIsDeletingPaper(false);
     }
   };
 
@@ -400,7 +406,7 @@ export function PaperManagementPage() {
                           )}
 
                           <button
-                            onClick={() => handleDelete(paper)}
+                            onClick={() => setPaperToDelete(paper)}
                             className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                             title="Delete paper"
                           >
@@ -440,6 +446,16 @@ export function PaperManagementPage() {
           onClose={() => setEditModalOpen(false)}
           onSave={handleSaveEdit}
           paper={selectedPaper}
+        />
+
+        <ConfirmDialog
+          isOpen={Boolean(paperToDelete)}
+          title="Delete paper?"
+          description={`This will permanently delete "${paperToDelete?.title || 'this paper'}".`}
+          confirmLabel="Delete paper"
+          isLoading={isDeletingPaper}
+          onConfirm={handleDelete}
+          onCancel={() => setPaperToDelete(null)}
         />
       </div>
     </div>

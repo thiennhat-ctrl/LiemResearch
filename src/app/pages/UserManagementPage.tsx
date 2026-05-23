@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { AppHeader } from '../components/AppHeader';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Search, Eye, Ban, CheckCircle, Filter, Shield, Trash2, X } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser } from '../lib/api';
 
@@ -20,7 +21,9 @@ export function UserManagementPage() {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<ManagedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -96,25 +99,28 @@ export function UserManagementPage() {
     }
   };
 
-  const deleteUser = async (user: ManagedUser) => {
-    const confirmed = window.confirm(`Delete "${user.fullName}"?`);
-    if (!confirmed) return;
+  const deleteUser = async () => {
+    if (!userToDelete) return;
 
     setError('');
     setMessage('');
+    setIsDeletingUser(true);
 
     try {
-      await apiRequest(`/users/${user._id}`, {
+      await apiRequest(`/users/${userToDelete._id}`, {
         method: 'DELETE',
         auth: true,
       });
 
-      setUsers(users.filter((item) => item._id !== user._id));
+      setUsers(users.filter((item) => item._id !== userToDelete._id));
       setSelectedUser(null);
+      setUserToDelete(null);
       setShowDetailModal(false);
       setMessage('User deleted successfully.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to delete user');
+    } finally {
+      setIsDeletingUser(false);
     }
   };
 
@@ -299,7 +305,7 @@ export function UserManagementPage() {
                           )}
 
                           <button
-                            onClick={() => deleteUser(user)}
+                            onClick={() => setUserToDelete(user)}
                             disabled={user._id === currentUser?._id}
                             className="p-2 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-40"
                             title="Delete user"
@@ -411,6 +417,16 @@ export function UserManagementPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(userToDelete)}
+        title="Delete user?"
+        description={`This will permanently delete "${userToDelete?.fullName || 'this user'}" and their own paper requests.`}
+        confirmLabel="Delete user"
+        isLoading={isDeletingUser}
+        onConfirm={deleteUser}
+        onCancel={() => setUserToDelete(null)}
+      />
     </div>
   );
 }
