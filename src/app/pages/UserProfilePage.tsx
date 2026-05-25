@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { AppHeader } from '../components/AppHeader';
+import { LoadingSkeleton } from '../components/LoadingSpinner';
 import {
   Award,
   Building2,
@@ -321,8 +322,8 @@ export function UserProfilePage() {
         <AppHeader role="user" />
         <div className="mx-auto max-w-6xl">
           {isLoading && (
-            <div className="mb-6 rounded-lg border border-border bg-white p-6 shadow-sm">
-              <p className="text-muted-foreground">Loading profile...</p>
+            <div className="mb-6">
+              <LoadingSkeleton variant="profile" />
             </div>
           )}
 
@@ -338,7 +339,9 @@ export function UserProfilePage() {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+          {!isLoading && (
+            <>
+              <section className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
             <div className="h-28 bg-blue-600" />
             <div className="px-8 pb-8">
               <div className="-mt-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -394,9 +397,9 @@ export function UserProfilePage() {
                 <ProfileMetric label="Points" value={rankingStats?.points ?? 0} icon={Trophy} />
               </div>
             </div>
-          </section>
+              </section>
 
-          <div className="mt-6 rounded-lg border border-border bg-white shadow-sm">
+              <div className="mt-6 rounded-lg border border-border bg-white shadow-sm">
             <div className="flex border-b border-border px-4">
               <ProfileTabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
                 Overview
@@ -573,6 +576,8 @@ export function UserProfilePage() {
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>

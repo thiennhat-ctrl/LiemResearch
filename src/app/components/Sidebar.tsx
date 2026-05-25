@@ -1,5 +1,5 @@
 import { Home, FileText, LogOut, BarChart3, Users, Trophy, User as UserIcon } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation, Link } from 'react-router';
 import { clearAuth } from '../lib/api';
 
 interface SidebarProps {
@@ -38,11 +38,11 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
 
   return (
     <div className="w-64 h-screen bg-white border-r border-border flex flex-col">
-      <div className="h-44 flex items-center justify-center px-0 py-0">
+      <Link to="/" className="h-44 flex items-center justify-center px-0 py-0 cursor-pointer transition-opacity hover:opacity-80">
         <div className="h-44 overflow-hidden flex items-center justify-center px-0 py-0 bg-white">
           <img src={logo} alt="LiemResearch" className="w-full h-full object-contain scale-[1.35]" />
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 p-4">
         <ul className="space-y-2">

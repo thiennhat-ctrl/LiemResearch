@@ -6,6 +6,7 @@ import { SubNavbar } from '../components/SubNavbar';
 import { StatsCard } from '../components/StatsCard';
 import { StatusBadge } from '../components/StatusBadge';
 import { PaperCard } from '../components/PaperCard';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { FileText, Download, Clock, Users } from 'lucide-react';
 import { apiRequest, AuthUser, getToken } from '../lib/api';
 import { PublicPaper } from '../lib/papers';
@@ -175,25 +176,27 @@ export function UserDashboard() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            {papers.map((paper) => (
-              <PaperCard
-                key={paper._id}
-                paper={paper}
-                variant="dashboard"
-                onOpen={(selectedPaper) => navigate(`/paper/${selectedPaper._id}`)}
-                onDownload={handleDownload}
-              />
-            ))}
-          </div>
-
-          {!isLoading && papers.length === 0 && (
+          {isLoading ? (
+            <LoadingSpinner label="Loading papers..." />
+          ) : papers.length === 0 ? (
             <div className="bg-white rounded-lg border border-border shadow-sm p-12 text-center">
               <Search size={48} className="mx-auto text-muted-foreground mb-4" />
               <h3 className="text-foreground mb-2">No papers found</h3>
               <p className="text-muted-foreground">
                 Try adjusting your search terms or filters.
               </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {papers.map((paper) => (
+                <PaperCard
+                  key={paper._id}
+                  paper={paper}
+                  variant="dashboard"
+                  onOpen={(selectedPaper) => navigate(`/paper/${selectedPaper._id}`)}
+                  onDownload={handleDownload}
+                />
+              ))}
             </div>
           )}
           </div>

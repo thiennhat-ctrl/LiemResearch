@@ -4,6 +4,7 @@ import { Sidebar } from '../components/Sidebar';
 import { AppHeader } from '../components/AppHeader';
 import { StatsCard } from '../components/StatsCard';
 import { StatusBadge } from '../components/StatusBadge';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { FileText, Download, Clock, Users } from 'lucide-react';
 import { apiRequest, AuthUser } from '../lib/api';
 import { PublicPaper } from '../lib/papers';
@@ -107,12 +108,10 @@ export function AdminDashboard() {
             </div>
           )}
 
-          {isLoading && (
-            <div className="bg-white rounded-lg border border-border shadow-sm p-6 mb-8">
-              <p className="text-muted-foreground">Loading dashboard...</p>
-            </div>
-          )}
-
+          {isLoading ? (
+            <LoadingSpinner label="Loading dashboard..." />
+          ) : (
+            <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatsCard
               title="Total Requests"
@@ -201,6 +200,8 @@ export function AdminDashboard() {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export type AuthUser = {
@@ -15,9 +17,6 @@ export type AuthUser = {
 type RequestOptions = RequestInit & {
   auth?: boolean;
 };
-
-// Storage sync listeners
-let storageListeners: Set<() => void> = new Set();
 
 export function getToken() {
   return localStorage.getItem('token');
@@ -67,12 +66,10 @@ export function setupStorageSync(onAuthChange?: (type: 'login' | 'logout') => vo
 
   // Thêm listener
   window.addEventListener('storage', handleStorageChange);
-  storageListeners.add(handleStorageChange);
 
   // Return cleanup function
   return () => {
     window.removeEventListener('storage', handleStorageChange);
-    storageListeners.delete(handleStorageChange);
   };
 }
 
