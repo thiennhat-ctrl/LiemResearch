@@ -426,6 +426,12 @@ These are the things that caused real bugs or near-misses. Keep them in mind:
 
 ## 13. For Claude (or Any AI Working In This Repo)
 
+### Workflow rules
+- **DO NOT auto-commit.** Edit files and verify them. Suggest a commit message at the end. The user runs `git add` and `git commit` themselves at their own pace.
+- **DO NOT run `git push`, `git reset`, or any destructive git command** unless the user explicitly asks.
+- **DO ask before** scaffolding new packages, installing global tools, or making changes outside `apps/`, `packages/`, or `docs/`.
+
+### Code rules
 - **Read the Phase A design spec first** before suggesting changes to data flow, model schemas, or sync logic.
 - **Stay within the conventions in §6.** They are not preferences — they are constraints we agreed on.
 - **Long-running work goes in BullMQ workers, not request handlers.** No exceptions.
