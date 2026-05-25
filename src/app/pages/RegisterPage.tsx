@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { BookOpen, Building2, CheckCircle2, CreditCard, Lock, Mail, Search, ShieldCheck, User } from 'lucide-react';
+import { BookOpen, Building2, CheckCircle2, CreditCard, Lock, Mail, ShieldCheck, User } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser, getToken } from '../lib/api';
 
 export function RegisterPage() {
@@ -101,16 +101,7 @@ export function RegisterPage() {
             <span className="text-lg font-medium text-foreground">LiemResearch</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="relative hidden flex-1 text-left md:block"
-          >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <span className="block w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 text-muted-foreground">
-              Search papers...
-            </span>
-          </button>
+          
 
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -118,7 +109,7 @@ export function RegisterPage() {
               onClick={() => navigate('/login')}
               className="rounded-lg px-4 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-              Log in
+              Login
             </button>
             <button
               type="button"
@@ -226,7 +217,7 @@ export function RegisterPage() {
                   onClick={() => navigate('/login')}
                   className="text-primary hover:underline"
                 >
-                  Log in here
+                  Login here
                 </button>
               </p>
             </div>

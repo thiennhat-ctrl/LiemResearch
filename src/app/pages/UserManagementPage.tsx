@@ -40,6 +40,25 @@ export function UserManagementPage() {
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
+  useEffect(() => {
+    if (!showDetailModal) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, [showDetailModal]);
+
   async function loadUsers() {
     setIsLoading(true);
 
@@ -355,7 +374,7 @@ export function UserManagementPage() {
               </button>
             </div>
 
-            <div className="max-h-[calc(90vh-156px)] overflow-y-auto p-6">
+            <div className="max-h-[calc(90vh-156px)] overflow-y-auto overscroll-contain p-6">
               <div className="mb-6 flex items-center gap-4 rounded-lg border border-border bg-muted/60 p-4">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-foreground text-xl font-semibold text-white">
                   {(selectedUser.fullName || 'U')
