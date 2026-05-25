@@ -319,28 +319,30 @@ export function HomePage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-white p-5 shadow-sm">
-            <h3 className="mb-2 text-foreground">Join LiemResearch</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Sign in to request papers, upload PDFs, rate research, and track your contribution points.
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-blue-600"
-              >
-                Create account
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="rounded-lg border border-border px-4 py-2 text-foreground transition-colors hover:bg-accent"
-              >
-                Login
-              </button>
+          {!currentUser && (
+            <div className="rounded-lg border border-border bg-white p-5 shadow-sm">
+              <h3 className="mb-2 text-foreground">Join LiemResearch</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Sign in to request papers, upload PDFs, rate research, and track your contribution points.
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-blue-600"
+                >
+                  Create account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="rounded-lg border border-border px-4 py-2 text-foreground transition-colors hover:bg-accent"
+                >
+                  Login
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </aside>
       </main>
     </div>
