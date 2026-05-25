@@ -1,189 +1,217 @@
-# Phase A — Team Task Assignment
+# Phase A — Chia Việc Theo Feature
 
-**Phase A goal:** end-of-phase the system has ~100 real OpenAlex papers in MongoDB *and* a working web auth flow (login/register/dashboard) — both on the same backend.
+**4 người, 4 feature, mỗi người ship 1 thứ.**
 
-**Status as of 2026-05-25:**
-- ✅ Track B (Frontend auth UI) — DONE, committed `9e1002c`
-- ⏳ Track A (Backend sync pipeline) — Lead coding
-- 🆕 Tracks C, D, E — parallel work for the rest of the team
-
-Each track below is **fully independent** — no merge conflicts with Track A, no dependency on Track A data. You can all push to feature branches and PR into `dev` in any order.
+Mỗi feature là **1 thứ demoable** — show được cho thầy, viết được trên CV. Không có "Track A/B/C" technical jargon. Tên đơn giản.
 
 ---
 
-## Coordination Ground Rules
+## 🗂️ Quick Overview
 
-1. **Branch per task:** `feat/<your-name>/<short-description>` off `dev`.
-2. **PR review:** at least one other team member approves before merge.
-3. **Commit message format:** `feat(scope): summary` / `fix(scope): summary` / `docs: summary`. Run conventional commit style.
-4. **Daily standup (15 min):** 9am Discord voice. Each person: yesterday / today / blockers.
-5. **No commits to `main`.** Lead merges `dev` → `main` at end of Phase A.
-6. **Pull `dev` before starting work each morning.** Avoid stale branches.
-7. **Keep your own `.env` private.** Do not commit, do not paste in any chat.
+| Người | Feature | Cái gì sẽ tồn tại sau khi xong |
+|---|---|---|
+| **Lead (bạn)** | 📊 **Paper Sync System** | DB có 100+ paper thật từ OpenAlex, sync chạy được, dedup hoạt động |
+| **Dev 1** | 📱 **Mobile Login/Register** | Mở Expo Go trên điện thoại đăng ký + đăng nhập được, token persist |
+| **Dev 2** | 🎨 **UI Component Library** | Có PaperCard, EmptyState, 404, dark mode — dùng được khắp app |
+| **Dev 3** | 🔧 **Team Workflow Tools** | CI tự chạy khi PR, lint auto-format khi commit, docker build được |
 
----
-
-## Track A — Backend Sync Pipeline 👑 LEAD (hoangtira)
-
-**Status:** in progress.
-**Tracking:** tasks #27–#31 in the project task list.
-**Files:** `apps/backend/src/modules/api-sync/*`, `apps/backend/src/modules/papers/models/*`, `apps/backend/src/modules/audit/*`, `apps/backend/src/workers/sync.worker.ts`, `apps/backend/scripts/seed-providers.ts`.
-**Effort:** 6–10 hours.
-
-Detailed spec lives in [`docs/superpowers/specs/2026-05-25-phase-a-design.md`](superpowers/specs/2026-05-25-phase-a-design.md).
-
-Brief: 10 new Mongoose models, OpenAlex API client with rate-limit + retry, normalizer (OpenAlex JSON → Paper schema with `abstract_inverted_index` reconstruction), sync service with dedup + upsert merge + inline quality check, BullMQ worker, admin endpoint `POST /api/v1/admin/sync`, cron `0 2 * * *`, seed script for `api_providers`.
-
-**Acceptance:** `pnpm worker:sync` consumes admin-triggered job, syncs ~100 papers about "large language model education" (year ≥ 2022), `paper_source_records` populated for each, re-running the sync increments `totalDuplicates` not `totalInserted`.
+**Ghi chú:** Web Login/Register **đã xong** (commit `9e1002c`) — không cần chia cho ai nữa.
 
 ---
 
-## Track C — Mobile Auth Screens 📱 DEV 1
+## 📊 Lead (bạn) — Paper Sync System
 
-**Goal:** mirror the web auth flow on Expo. Same hooks, same backend, mobile UI.
+### Mục tiêu rõ ràng
+Cuối Phase A, demo cho thầy:
+> *"Đây — em bấm nút Sync, sau 2 phút có 100 bài báo về LLM-in-education từ OpenAlex. Click vào xem thấy title, author, year, journal."*
 
-**Files to create:**
+### Output bạn ship
+1. 10 Mongoose models trong DB (journals, authors, keywords, ...)
+2. Worker chạy nền (`pnpm worker:sync`)
+3. Admin endpoint `POST /api/v1/admin/sync` trigger được
+4. Cron job tự chạy 2h sáng mỗi ngày
+5. ~100 paper thật trong MongoDB Atlas
+
+### Spec chi tiết
+[`docs/superpowers/specs/2026-05-25-phase-a-design.md`](superpowers/specs/2026-05-25-phase-a-design.md)
+
+### Files bạn động vào
 ```
-apps/mobile/src/features/auth/components/
-├── login-form.tsx                NEW — react-hook-form + zodResolver, native inputs
-└── register-form.tsx             NEW
-
-apps/mobile/app/(auth)/
-├── _layout.tsx                   NEW — Stack with title "Sign in" / "Sign up"
-├── login.tsx                     NEW — wraps <LoginForm/>
-└── register.tsx                  NEW — wraps <RegisterForm/>
-
-apps/mobile/src/components/
-└── protected-route.tsx           NEW — Expo Router useRouter().replace("/(auth)/login")
-                                  on missing token
-
-apps/mobile/src/features/auth/index.ts   EXTEND — export LoginForm, RegisterForm
-apps/mobile/src/features/auth/schemas/auth.schemas.ts   COPY from web
-apps/mobile/app/_layout.tsx       EDIT — wrap protected screens, add logout button
+apps/backend/src/modules/api-sync/*          (toàn bộ module mới)
+apps/backend/src/modules/papers/models/*     (6 models mới)
+apps/backend/src/modules/audit/*             (module mới)
+apps/backend/src/workers/sync.worker.ts      (entry point worker)
+apps/backend/scripts/seed-providers.ts       (seed api_providers)
 ```
 
-**Reuse, don't rewrite:**
-- `apps/mobile/src/features/auth/index.ts` already exports `useLogin`, `useRegister`, `useLogout`, `useCurrentUser` — these work as-is.
-- `apps/mobile/src/services/api-client.ts` already has axios + JWT refresh.
-- `apps/mobile/src/stores/auth-store.ts` already persists tokens to `expo-secure-store` (Keychain on iOS, Keystore on Android).
-- The web copy in `apps/web/src/features/auth/components/login-form.tsx` is the reference. Replace shadcn primitives with React Native components or NativeWind-styled `<View>` / `<TextInput>` / `<Pressable>`.
+### Done khi
+- [ ] `curl POST /api/v1/admin/sync` → return runId
+- [ ] Worker logs ~200 paper upsert
+- [ ] MongoDB count `research_papers` ≥ 100
+- [ ] Re-run sync → `totalDuplicates` tăng
+- [ ] `pnpm typecheck` pass
 
-**Toast/notification:** use `react-native` `Alert.alert()` for errors initially, or wire `react-native-toast-message` if you want fancier UX (not required for Phase A).
-
-**Validation:** copy `loginSchema` and `registerSchema` from `apps/web/src/features/auth/schemas/auth.schemas.ts` verbatim — these are framework-agnostic Zod schemas.
-
-**Acceptance:**
-- Open Expo Go on phone or simulator, scan QR from `pnpm dev:mobile`.
-- Register a new account, see success state.
-- Force-close app, reopen — still logged in (tokens persisted to secure store).
-- Tap profile / logout — redirected to login screen.
-- Try to access a protected screen without auth — redirected to login.
-
-**Effort:** 4–6 hours.
-**Out of scope (Phase C-mobile):** tab navigation, paper detail screen, search bar, push notifications.
+**Effort:** 6–10 giờ.
 
 ---
 
-## Track D — Frontend Polish + Foundation Components 🎨 DEV 2
+## 📱 Dev 1 — Mobile Login/Register
 
-**Goal:** ship reusable building blocks the rest of the project will use, and tighten the existing Track B flow.
+### Mục tiêu rõ ràng
+Cuối Phase A, demo:
+> *"Em mở app trên điện thoại, đăng ký account mới, đóng app, mở lại — vẫn đăng nhập."*
 
-**Files to create:**
+### Output bạn ship
+1. Màn hình Login + Register trên Expo
+2. Token lưu vào secure storage (Keychain iOS / Keystore Android)
+3. Protected route — chưa login bị đẩy về Login
+4. Logout button hoạt động
+
+### Code mẫu để copy
+**Web đã có sẵn pattern hoàn chỉnh ở:**
+- `apps/web/src/features/auth/components/login-form.tsx` ← copy logic, đổi UI sang RN
+- `apps/web/src/features/auth/components/register-form.tsx`
+- `apps/web/src/components/protected-route.tsx`
+
+### Reuse những gì đã có (KHÔNG viết lại)
+- `apps/mobile/src/features/auth/index.ts` — đã export `useLogin`, `useRegister`, `useLogout`, `useCurrentUser`
+- `apps/mobile/src/services/api-client.ts` — axios + JWT refresh đã sẵn
+- `apps/mobile/src/stores/auth-store.ts` — đã wire với `expo-secure-store`
+
+### Files bạn tạo
 ```
-apps/web/src/components/
-├── empty-state.tsx               NEW — title + description + optional CTA
-├── loading-spinner.tsx           NEW — small inline spinner using lucide-react Loader2
-├── skeleton.tsx                  NEW (or run: pnpm dlx shadcn@latest add skeleton)
-├── page-error.tsx                NEW — generic <ErrorBoundary/> + 500 page
-└── paper-card.tsx                NEW — accepts Paper from @trend/shared-types,
-                                  shows title/authors/year/journal/citationCount
-                                  (renders mock-data fine — Track A will fill DB)
-
-apps/web/src/pages/
-├── not-found.tsx                 NEW — 404 page, link back to /
-└── error.tsx                     NEW — generic crash page
-
-apps/web/src/components/
-└── theme-toggle.tsx              NEW — dark/light toggle using next-themes (already installed)
-
-apps/web/src/main.tsx             EDIT — wrap <App/> with <ThemeProvider/> from next-themes
-apps/web/src/routes/app-routes.tsx EDIT — add catch-all <Route path="*" element={<NotFoundPage/>}/>
+apps/mobile/src/features/auth/components/login-form.tsx     NEW
+apps/mobile/src/features/auth/components/register-form.tsx  NEW
+apps/mobile/src/features/auth/schemas/auth.schemas.ts       COPY từ web
+apps/mobile/app/(auth)/_layout.tsx                          NEW
+apps/mobile/app/(auth)/login.tsx                            NEW
+apps/mobile/app/(auth)/register.tsx                         NEW
+apps/mobile/src/components/protected-route.tsx              NEW
+apps/mobile/app/_layout.tsx                                 EDIT
 ```
 
-**Reuse, don't rewrite:**
-- shadcn components already installed in `apps/web/src/components/ui/`: button, card, dialog, dropdown-menu, form, input, label, sonner. Use them.
-- Tailwind CSS variables already wired in `apps/web/src/theme/globals.css` — both light and dark themes are defined.
-- `apps/web/src/utils/cn.ts` for className composition.
-- `lucide-react` for icons (already in package.json).
-- `@trend/shared-types` for the `Paper` type — import it.
+### Tech cần dùng
+- React Native components: `View`, `Text`, `TextInput`, `Pressable`
+- NativeWind classNames (Tailwind cho RN) — đã setup
+- `react-hook-form` + `@hookform/resolvers` — cần install
+- `expo-router` cho navigation
+- Validation: copy nguyên `loginSchema`, `registerSchema` Zod từ web
 
-**PaperCard sample API:**
+### Done khi
+- [ ] `pnpm dev:mobile` mở Expo Go, scan QR vào app
+- [ ] Đăng ký tạo account mới — backend nhận
+- [ ] Đóng app, mở lại — vẫn login
+- [ ] Logout → quay lại màn Login
+- [ ] Test trên iOS simulator HOẶC Android emulator HOẶC điện thoại thật
+
+**Effort:** 4–6 giờ.
+
+---
+
+## 🎨 Dev 2 — UI Component Library
+
+### Mục tiêu rõ ràng
+Cuối Phase A, demo:
+> *"Bất kỳ trang nào empty thì hiện 'EmptyState đẹp', đang load hiện skeleton, lỗi hiện ErrorBoundary, đổi dark mode được, 404 page có nút Back."*
+
+→ Đây là **design foundation**. Phase B-C sau sẽ dùng lại các component này nhiều lần.
+
+### Output bạn ship
+1. 6 components mới reusable
+2. 2 pages: 404, ErrorBoundary
+3. Dark mode toggle hoạt động và persist
+4. MainLayout có theme toggle
+
+### Files bạn tạo
+```
+apps/web/src/components/empty-state.tsx          NEW — title + desc + CTA optional
+apps/web/src/components/loading-spinner.tsx      NEW — inline spinner
+apps/web/src/components/skeleton.tsx             NEW — hoặc shadcn add skeleton
+apps/web/src/components/paper-card.tsx           NEW — hiển thị 1 paper (dùng Paper từ shared-types)
+apps/web/src/components/theme-toggle.tsx         NEW — light/dark switch
+apps/web/src/components/page-error.tsx           NEW — ErrorBoundary wrapper
+
+apps/web/src/pages/not-found.tsx                 NEW — 404 page
+apps/web/src/pages/error.tsx                     NEW — generic crash page
+
+apps/web/src/main.tsx                            EDIT — wrap với ThemeProvider
+apps/web/src/layouts/MainLayout.tsx              EDIT — thêm ThemeToggle vào header
+apps/web/src/routes/app-routes.tsx               EDIT — add Route path="*" → 404
+```
+
+### Tech cần dùng
+- shadcn `Card`, `Button` đã có
+- `next-themes` cho dark mode (đã trong package.json)
+- `lucide-react` cho icons (đã có)
+- Type `Paper` từ `@trend/shared-types` (cho PaperCard prop)
+- Test với **mock data** — không cần đợi Track Sync xong
+
+### PaperCard sample
 ```tsx
+import type { Paper } from "@trend/shared-types";
+
 <PaperCard
-  paper={paper}
-  onClick={() => navigate(`/papers/${paper.id}`)}
+  paper={mockPaper}
+  onClick={(p) => console.log(p.id)}
   showCitations
 />
 ```
 
-You can build PaperCard against a mock paper from a fixtures file — no need to wait for real data from Track A.
+### Done khi
+- [ ] Vào URL bất kỳ không tồn tại → 404 page với nút "Back home"
+- [ ] Click theme toggle → trang flip dark/light, reload vẫn giữ
+- [ ] Render `<PaperCard paper={mockPaper}/>` standalone đẹp
+- [ ] Throw error trong component → ErrorBoundary catch, không white screen
+- [ ] `<EmptyState/>`, `<LoadingSpinner/>`, `<Skeleton/>` dùng được independent
 
-**Acceptance:**
-- `pnpm dev:web` → navigate to `/totally-fake-url` → 404 page renders.
-- Click theme toggle in header → page flips dark/light, persists across reloads.
-- `<PaperCard/>` rendered in isolation looks like a real paper card (titled, authors visible, year + citation count).
-- Throw an error inside a route on purpose → ErrorBoundary catches, renders Page Error instead of white screen.
-- Lighthouse audit: page-error.tsx not regressing accessibility (alt text, contrast).
-
-**Effort:** 4–6 hours.
+**Effort:** 4–6 giờ.
 
 ---
 
-## Track E — DevOps + Tooling 🔧 DEV 3
+## 🔧 Dev 3 — Team Workflow Tools
 
-**Goal:** stop bugs from landing on `main`. Make the team's daily loop tighter.
+### Mục tiêu rõ ràng
+Cuối Phase A, demo:
+> *"Em commit code → tự động format. Em push PR → GitHub Actions tự chạy lint + typecheck. Code xấu không vào main được."*
 
-**Files to create:**
+→ Đây là **process foundation**. Bảo vệ chất lượng code cho cả team.
+
+### Output bạn ship
+1. ESLint config — bắt lỗi code khi commit
+2. Prettier — tự format khi save
+3. Husky pre-commit hook — chặn commit code xấu
+4. Commitlint — chặn commit message lung tung
+5. GitHub Actions CI — chạy khi PR
+6. Backend Dockerfile — deploy được sau này
+7. CONTRIBUTING.md — onboarding cho dev mới
+
+### Files bạn tạo
 ```
-.eslintrc.cjs                     NEW — root config extending @typescript-eslint
-                                  + react + react-hooks + import + jsx-a11y
-.prettierrc.json                  NEW — printWidth 100, semicolons, single quotes
-.prettierignore                   NEW — exclude pnpm-lock.yaml, dist, .turbo, build
+.eslintrc.cjs                         NEW — root
+apps/{backend,web,mobile}/.eslintrc.cjs  NEW — kế thừa root
+.prettierrc.json                      NEW
+.prettierignore                       NEW
 
-apps/backend/.eslintrc.cjs        NEW — extends root + node-specific rules
-apps/web/.eslintrc.cjs            NEW — extends root + react rules
-apps/mobile/.eslintrc.cjs         NEW — extends root + react-native rules
+.husky/pre-commit                     NEW — runs lint-staged
+.husky/commit-msg                     NEW — runs commitlint
+.lintstagedrc.json                    NEW
+commitlint.config.cjs                 NEW
 
-.husky/
-├── pre-commit                    NEW — runs `pnpm lint-staged`
-└── commit-msg                    NEW — runs `pnpm commitlint --edit "$1"`
+.github/workflows/ci.yml              NEW — lint + typecheck + build matrix
+.github/pull_request_template.md      NEW
 
-.lintstagedrc.json                NEW — *.{ts,tsx} → eslint + prettier
-                                       *.{json,md} → prettier
+.vscode/settings.json                 NEW
+.vscode/extensions.json               NEW
 
-commitlint.config.cjs             NEW — extends @commitlint/config-conventional
+apps/backend/Dockerfile               NEW — multi-stage node:22-alpine
+apps/backend/.dockerignore            NEW
 
-.github/workflows/
-└── ci.yml                        NEW — on PR + push to dev/main:
-                                  pnpm install, lint, typecheck, build matrix
-
-.github/pull_request_template.md  NEW — checklist (typecheck, lint, screenshots)
-
-.vscode/
-├── settings.json                 NEW — formatOnSave, eslint.validate, etc.
-└── extensions.json               NEW — recommend dbaeumer.vscode-eslint,
-                                       esbenp.prettier-vscode, bradlc.vscode-tailwindcss
-
-apps/backend/Dockerfile           NEW — multi-stage, node:22-alpine, pnpm prune
-                                  (production-ready for Railway/Render deploy later)
-apps/backend/.dockerignore        NEW — node_modules, .env, .turbo, dist
-
-CONTRIBUTING.md                   NEW — branch naming, commit format, PR review
-                                  rules, env setup pointer
+CONTRIBUTING.md                       NEW — branch naming, PR rules
 ```
 
-**Run after install:**
+### Lệnh setup
 ```bash
+# Tại repo root
 pnpm add -D -w eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser \
   eslint-plugin-react eslint-plugin-react-hooks eslint-plugin-import \
   eslint-plugin-jsx-a11y prettier eslint-config-prettier husky lint-staged \
@@ -191,46 +219,104 @@ pnpm add -D -w eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser
 pnpm exec husky init
 ```
 
-Then add `"prepare": "husky"` to root `package.json`.
+Add vào root `package.json`: `"prepare": "husky"`.
 
-**Acceptance:**
-- `pnpm lint` from root runs across all packages with no errors.
-- Try to commit a file with `var x = 1;` (no const/let) → blocked by pre-commit hook.
-- Try to commit with message `wip` → blocked by commitlint.
-- Open PR on GitHub → CI runs lint + typecheck + build automatically.
-- `docker build -t trend-backend apps/backend` produces a < 200 MB image that boots.
-- New team member can read CONTRIBUTING.md and submit their first PR without asking the lead.
+### Done khi
+- [ ] `pnpm lint` chạy từ root, không lỗi cho code hiện tại
+- [ ] Commit file với `var x = 1` → bị chặn (rule no-var)
+- [ ] Commit message `"wip"` → bị commitlint chặn (cần `feat:` hoặc `fix:`)
+- [ ] Mở PR trên GitHub → CI tự chạy lint + typecheck, status check hiện
+- [ ] `docker build -t trend-backend apps/backend` ra image < 200 MB
+- [ ] Dev mới đọc CONTRIBUTING.md tự setup được
 
-**Effort:** 3–4 hours.
-**Note:** DO NOT touch `apps/backend/src/modules/api-sync/*` — that's Lead's territory (Track A).
+### ⚠️ KHÔNG được động vào
+- `apps/backend/src/modules/api-sync/*` (Lead's territory)
+- `apps/backend/src/modules/papers/models/*` (Lead's territory)
 
----
+Nếu muốn config affect chỉ những file đã có, không phải đoán file Lead sẽ tạo.
 
-## After Phase A Lands
-
-Anyone finishing early can pick up **Phase B prep** (low-risk, lots of reading):
-
-1. **Embedding service skeleton** — write `apps/backend/src/modules/embeddings/embedding.worker.ts` as a stub. Reads from a queue, calls `getEmbeddingProvider().embedBatch()`, writes `paper.embedding` and `paper.hasEmbedding = true`. Don't wire to BullMQ yet.
-2. **Read Atlas Vector Search docs** — understand `$vectorSearch` aggregation stage, `numCandidates` vs `limit`, score thresholds.
-3. **Prototype semantic search controller** — `modules/search/search.controller.ts` accepting `{ query, k }`, returns top-k papers. Use a fake embedding first (random 768-dim vector) — real embeddings come once Track A has data.
-4. **Read OpenAI prompt-engineering best practices** for Gemini equivalent (Phase C report generation).
+**Effort:** 3–4 giờ.
 
 ---
 
-## Decision Log for Phase A
+## 🧭 Coordination Rules (Cho 4 Người)
 
-If anything in this doc conflicts with reality (a library moved, an API changed), document the decision in the Phase A spec under a `## Decision Log` section. Don't hide breaking changes in a commit message — surface them so the next phase doesn't re-debate.
+### 1. Branch naming
+```
+feat/<your-name>/<short-description>
+ví dụ:
+  feat/long/mobile-login
+  feat/thanh/paper-card
+  feat/nam/ci-workflow
+```
+
+### 2. Commit message format (sau khi Dev 3 setup commitlint)
+```
+feat: short description           ← thêm tính năng
+fix: short description            ← sửa bug
+docs: short description           ← chỉ docs
+refactor: short description       ← đổi code không đổi behavior
+chore: short description          ← config, build, devops
+```
+
+### 3. PR flow
+- Push lên branch riêng → mở PR vào `dev` (không vào `main`)
+- Reviewer = ít nhất 1 người trong team
+- CI phải xanh mới merge
+- Lead merge `dev` → `main` cuối Phase A
+
+### 4. Daily standup
+- 9h sáng mỗi ngày Discord voice (15 phút)
+- Mỗi người 30 giây: hôm qua làm X, hôm nay làm Y, vướng Z
+- Block ở chỗ nào → cả nhóm pair giúp
+
+### 5. Pull `dev` mỗi sáng
+```bash
+git checkout dev && git pull
+git checkout feat/your-branch && git rebase dev
+```
+
+### 6. KHÔNG share secret qua git
+- `.env` đã trong `.gitignore`
+- Secrets share qua Discord pin (xem template trong CLAUDE.md)
+- Mỗi người tự lấy Gemini key riêng
 
 ---
 
-## Done Definition for Phase A
+## ✅ Phase A "Done" Definition
 
-Phase A is done when **all** of these are true on `dev` branch:
+Cả team xong khi:
+- [ ] Lead: Sync system hoạt động, 100+ papers trong DB
+- [ ] Dev 1: Mobile auth chạy trên Expo Go
+- [ ] Dev 2: UI components + 404 + theme toggle merged
+- [ ] Dev 3: CI xanh trên mọi PR, pre-commit hook chặn code xấu
+- [ ] CLAUDE.md §10 (Roadmap) update Phase A → DONE
+- [ ] Lead merge `dev` → `main`
 
-- [ ] Track A: `POST /api/v1/admin/sync` triggers a job that syncs ≥ 100 OpenAlex papers, with `paper_source_records` and `paper_quality_checks` populated. Re-running shows duplicates.
-- [ ] Track B: web auth flow already shipped (`9e1002c`).
-- [ ] Track C: mobile auth flow working in Expo Go on a real device.
-- [ ] Track D: 404, ErrorBoundary, ThemeToggle, PaperCard, EmptyState all merged.
-- [ ] Track E: CI green on every PR; pre-commit hooks active locally; `docker build` succeeds.
-- [ ] CLAUDE.md §10 (Roadmap) updated to mark Phase A as done.
-- [ ] Lead merges `dev` → `main` with a single conventional-commit message: `feat: Phase A — data pipeline + auth flows`.
+---
+
+## 🎯 Sau Phase A — Ai Xong Sớm Làm Gì?
+
+**Phase B prep** (đọc + prototype, low-risk):
+- Đọc [Atlas Vector Search docs](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/)
+- Stub `apps/backend/src/modules/embeddings/embedding.worker.ts`
+- Prototype semantic search controller với fake 768-dim vector
+- Đọc Gemini prompt engineering guide
+
+→ Không lãng phí thời gian, sẵn sàng Phase B.
+
+---
+
+## 📞 Khi Stuck
+
+Format ngắn gọn gửi vào Discord:
+
+```
+🆘 Stuck
+Feature: [Sync System / Mobile Auth / ...]
+File: [path]
+Đã thử: [những gì đã làm]
+Error: [paste error]
+```
+
+Ai trên đầu thấy có thể giúp ngay. Lead luôn ưu tiên trả lời.
