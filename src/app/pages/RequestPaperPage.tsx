@@ -95,9 +95,10 @@ export function RequestPaperPage() {
     <div className="flex min-h-screen bg-surface-request bg-fixed">
       <Sidebar role="user" />
 
-      <div className="flex-1 p-8">
+      <div className="flex-1">
         <AppHeader role="user" />
-        <div className="max-w-3xl mx-auto">
+        <div className="p-8">
+          <div className="max-w-3xl mx-auto">
           <button
             onClick={() => navigate('/dashboard')}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -252,6 +253,7 @@ export function RequestPaperPage() {
                 </button>
               </div>
             </form>
+          </div>
           </div>
         </div>
       </div>
