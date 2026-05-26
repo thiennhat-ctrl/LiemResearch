@@ -119,18 +119,19 @@ export function HomePage() {
             <span className="text-lg font-medium text-foreground">LiemResearch</span>
           </button>
 
-          <div className="relative hidden flex-1 md:block">
+            <div className="relative hidden flex-1 md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value);
-                setSelectedTag('');
-              }}
-              placeholder="Search papers by title, DOI, keyword, or journal..."
-              className="w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setSelectedTag('');
+                }}
+                placeholder="Search papers by title, DOI, keyword, or journal..."
+                maxLength={128}
+                className="w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
           </div>
 
           {currentUser ? (
@@ -200,6 +201,7 @@ export function HomePage() {
                   setSelectedTag('');
                 }}
                 placeholder="Search papers..."
+                maxLength={128}
                 className="w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
