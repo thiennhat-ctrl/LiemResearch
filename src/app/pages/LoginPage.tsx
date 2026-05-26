@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { apiRequest, AuthUser, saveAuth, getStoredUser, getToken } from '../lib/api';
 import { useToast } from '../components/ToastProvider';
@@ -8,6 +8,7 @@ export function LoginPage() {
   const { showToast } = useToast();
   const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +24,14 @@ export function LoginPage() {
       navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (location.state?.registered) {
+      showToast('Account created successfully. Please login.', 'success');
+      if (location.state.email) setEmail(location.state.email as string);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, showToast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

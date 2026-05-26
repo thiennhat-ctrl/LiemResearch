@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { BookOpen, Building2, CheckCircle2, CreditCard, Lock, Mail, ShieldCheck, User } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser, getToken } from '../lib/api';
+import { useToast } from '../components/ToastProvider';
 import { validateStudentId } from '../lib/validation';
 
 export function RegisterPage() {
   const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     fullName: '',
     university: '',
@@ -80,6 +82,8 @@ export function RegisterPage() {
         method: 'POST',
         body: JSON.stringify(formData),
       });
+
+      showToast('Account created successfully. Please login.', 'success');
 
       navigate('/login', { state: { registered: true, email: formData.email } });
     } catch (err) {
