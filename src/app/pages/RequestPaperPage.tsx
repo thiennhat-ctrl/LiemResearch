@@ -295,9 +295,15 @@ function validatePaperRequest(data: {
     .filter(Boolean);
   const year = Number(data.year);
   const maxYear = new Date().getFullYear() + 1;
+  const titleWordCount = countWords(title);
+  const abstractWordCount = countWords(abstract);
 
   if (title.length < 8 || !hasEnoughWords(title, 3)) {
     return 'Please enter a clearer paper title.';
+  }
+
+  if (titleWordCount > 200) {
+    return 'Paper title must be 200 words or fewer.';
   }
 
   if (!/^10\.\d{4,9}\/\S+$/i.test(doi)) {
@@ -311,6 +317,10 @@ function validatePaperRequest(data: {
   const wordCount = countWords(abstract);
   if (wordCount < 100 || wordCount > 300) {
     return 'Word Count Limit: The abstract must contain between 100 and 300 words. Please revise your text to proceed.';
+  }
+
+  if (abstractWordCount > 1000) {
+    return 'Abstract must be 1000 words or fewer.';
   }
 
   if (keywords.length === 0 || keywords.some((keyword) => keyword.length < 2)) {
