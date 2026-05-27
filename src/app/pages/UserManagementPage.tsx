@@ -11,6 +11,14 @@ type ManagedUser = AuthUser & {
   createdAt?: string;
 };
 
+type UserRanking = {
+  rank: number;
+  points: number;
+  uploadedPapers?: number;
+  uploadedPdfs?: number;
+  ratingsGiven?: number;
+};
+
 function formatDate(value?: string) {
   return formatDisplayDate(value);
 }
@@ -39,6 +47,7 @@ export function UserManagementPage() {
   const [userToDelete, setUserToDelete] = useState<ManagedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
+  const [selectedUserRanking, setSelectedUserRanking] = useState<UserRanking | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
   useEffect(() => {
@@ -152,10 +161,17 @@ export function UserManagementPage() {
     setSelectedUser(user);
     setShowDetailModal(true);
     setIsLoadingUserDetails(true);
+    setSelectedUserRanking(null);
 
     try {
-      const data = await apiRequest<{ user: ManagedUser }>(`/users/${user._id}`, { auth: true });
+      const [userData, rankingData] = await Promise.all([
+        apiRequest<{ user: ManagedUser }>(`/users/${user._id}`, { auth: true }),
+        apiRequest<{ ranking: UserRanking }>(`/rankings/users/${user._id}`, { auth: true }).catch(() => ({ ranking: null })),
+      ]);
+
+      const data = userData;
       setSelectedUser(data.user);
+      setSelectedUserRanking(rankingData.ranking);
       setAllUsers((items) => items.map((item) => (item._id === user._id ? data.user : item)));
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Unable to load user profile', 'error');
@@ -272,7 +288,13 @@ export function UserManagementPage() {
                     <tr key={user._id} className="border-b border-border hover:bg-accent transition-colors">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-foreground">{user.fullName}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleViewDetails(user)}
+                            className="text-left text-foreground hover:underline"
+                          >
+                            {user.fullName}
+                          </button>
                           <p className="text-muted-foreground">{user.email}</p>
                           {/* Student ID removed */}
                         </div>
@@ -429,6 +451,16 @@ export function UserManagementPage() {
                     <Shield size={16} />
                     {selectedUser.role}
                   </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Ranking</p>
+                  <p className="text-foreground">
+                    {selectedUserRanking ? `Rank #${selectedUserRanking.rank}` : 'Rank N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Ranking Points</p>
+                  <p className="text-foreground">{selectedUserRanking?.points ?? 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Status</p>

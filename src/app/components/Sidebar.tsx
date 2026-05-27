@@ -32,6 +32,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
     { icon: BarChart3, label: 'Dashboard', path: '/admin' },
     { icon: FileText, label: 'Paper Management', path: '/admin/papers' },
     { icon: Users, label: 'User Management', path: '/admin/users' },
+    { icon: UserIcon, label: 'Profile', path: '/admin/profile' },
     { icon: LogOut, label: 'Logout', path: '/login', isLogout: true },
   ];
 

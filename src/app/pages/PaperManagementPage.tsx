@@ -19,6 +19,7 @@ interface AdminPaper extends EditablePaper {
     fullName?: string;
     email?: string;
     university?: string;
+    status?: string;
   };
   pdfPath?: string;
   uploadedBy?: {
@@ -56,6 +57,13 @@ export function PaperManagementPage() {
     role?: string;
     status?: string;
     createdAt?: string;
+  } | null>(null);
+  const [selectedUserRanking, setSelectedUserRanking] = useState<{
+    rank: number;
+    points: number;
+    uploadedPapers?: number;
+    uploadedPdfs?: number;
+    ratingsGiven?: number;
   } | null>(null);
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [showConfirmToggle, setShowConfirmToggle] = useState(false);
@@ -180,10 +188,20 @@ export function PaperManagementPage() {
     if (!userId) return;
     setIsLoadingUserDetails(true);
     setError('');
+    setSelectedUserRanking(null);
 
     try {
-      const data = await apiRequest<{ user: any }>(`/users/${userId}`, { auth: true });
+      const [userData, rankingData] = await Promise.all([
+        apiRequest<{ user: any }>(`/users/${userId}`, { auth: true }),
+        apiRequest<{ ranking: { rank: number; points: number; uploadedPapers?: number; uploadedPdfs?: number; ratingsGiven?: number } }>(
+          `/rankings/users/${userId}`,
+          { auth: true }
+        ).catch(() => ({ ranking: null })),
+      ]);
+
+      const data = userData;
       setSelectedUserProfile(data.user);
+      setSelectedUserRanking(rankingData.ranking);
       setShowUserModal(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load user profile');
@@ -630,6 +648,16 @@ export function PaperManagementPage() {
                     <div>
                       <p className="text-muted-foreground mb-1">Status</p>
                       <p className="text-foreground">{selectedUserProfile.status || 'active'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Ranking</p>
+                      <p className="text-foreground">
+                        {selectedUserRanking ? `Rank #${selectedUserRanking.rank}` : 'Rank N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Ranking Points</p>
+                      <p className="text-foreground">{selectedUserRanking?.points ?? 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Rejected Requests</p>

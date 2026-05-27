@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { getMyRanking, getTopUsers } from '../controllers/ranking.controller.js';
+import { getMyRanking, getTopUsers, getUserRankingById } from '../controllers/ranking.controller.js';
 import { requireAuth } from '../middlewares/auth.middleware.js';
+import { requireRole } from '../middlewares/role.middleware.js';
 
 const router = Router();
 
@@ -29,5 +30,25 @@ router.get('/top', getTopUsers);
  *         description: Current user's ranking
  */
 router.get('/me', requireAuth, getMyRanking);
+
+/**
+ * @swagger
+ * /api/rankings/users/{id}:
+ *   get:
+ *     summary: Get a user's ranking by id
+ *     tags: [Rankings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User ranking
+ */
+router.get('/users/:id', requireAuth, requireRole('admin'), getUserRankingById);
 
 export default router;
