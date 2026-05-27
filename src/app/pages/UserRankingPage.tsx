@@ -65,7 +65,11 @@ const pointRules: Array<{
 
 export function UserRankingPage() {
   const [rankings, setRankings] = useState<UserRank[]>([]);
+  const [currentRank, setCurrentRank] = useState<UserRank | null>(null);
   const [openRule, setOpenRule] = useState<RuleId | null>('paper');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalContributors, setTotalContributors] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -77,8 +81,20 @@ export function UserRankingPage() {
       setError('');
 
       try {
-        const data = await apiRequest<{ rankings: UserRank[] }>('/rankings/top', { auth: true });
-        if (isMounted) setRankings(data.rankings);
+        const [topData, myData] = await Promise.all([
+          apiRequest<{ rankings: UserRank[]; pagination?: { total?: number; totalPages?: number } }>(
+            `/rankings/top?page=${page}&limit=10`,
+            { auth: true }
+          ),
+          apiRequest<{ ranking: UserRank }>('/rankings/me', { auth: true }).catch(() => ({ ranking: null })),
+        ]);
+
+        if (isMounted) {
+          setRankings(topData.rankings);
+          setTotalContributors(topData.pagination?.total ?? topData.rankings.length);
+          setTotalPages(topData.pagination?.totalPages ?? 1);
+          setCurrentRank(myData.ranking ?? null);
+        }
       } catch (err) {
         if (isMounted) setError(err instanceof Error ? err.message : 'Unable to load rankings');
       } finally {
@@ -91,13 +107,11 @@ export function UserRankingPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [page]);
 
   const currentUser = getStoredUser();
-  const currentRank = rankings.find((item) => item.user._id === currentUser?._id);
   const topThree = rankings.slice(0, 3);
   const totalPoints = useMemo(() => rankings.reduce((sum, item) => sum + item.points, 0), [rankings]);
-  const totalContributors = rankings.length;
 
   return (
     <div className="flex min-h-screen bg-surface-achievement bg-fixed">
@@ -123,7 +137,7 @@ export function UserRankingPage() {
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <HeroMetric label="Contributors" value={totalContributors} />
-                  <HeroMetric label="Total Points" value={totalPoints} />
+                  <HeroMetric label="Page Points" value={totalPoints} />
                   <HeroMetric label="Your Rank" value={currentRank ? `#${currentRank.rank}` : 'N/A'} />
                 </div>
               </div>
@@ -166,6 +180,32 @@ export function UserRankingPage() {
                       />
                     ))}
                   </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between gap-4 border-t border-border px-6 py-4">
+                      <p className="text-sm text-muted-foreground">
+                        Page {page} of {totalPages}
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                          disabled={page === 1 || isLoading}
+                          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+                          disabled={page === totalPages || isLoading}
+                          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </section>
               </main>
 
