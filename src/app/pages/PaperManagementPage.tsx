@@ -7,13 +7,15 @@ import { UploadPdfModal } from '../components/UploadPdfModal';
 import { EditablePaper, EditPaperModal } from '../components/EditPaperModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Search, Upload, Download, Eye, Filter, Check, X, Edit, Trash2 } from 'lucide-react';
-import { apiRequest, resolveFileUrl } from '../lib/api';
+import { apiRequest, resolveFileUrl, getStoredUser } from '../lib/api';
 import { formatDisplayDate } from '../lib/date';
+import { useToast } from '../components/ToastProvider';
 
 type PaperStatus = 'pending' | 'downloaded' | 'not-downloaded' | 'approved' | 'rejected' | 'pending-requester-acceptance';
 
 interface AdminPaper extends EditablePaper {
   requestedBy?: {
+    _id?: string;
     fullName?: string;
     email?: string;
     university?: string;
@@ -45,6 +47,70 @@ export function PaperManagementPage() {
   const [isDeletingPaper, setIsDeletingPaper] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUserProfile, setSelectedUserProfile] = useState<{
+    _id?: string;
+    fullName?: string;
+    email?: string;
+    university?: string;
+    role?: string;
+    status?: string;
+    createdAt?: string;
+  } | null>(null);
+  const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
+  const [showConfirmToggle, setShowConfirmToggle] = useState(false);
+  const [pendingToggleUserId, setPendingToggleUserId] = useState<string | null>(null);
+  const [isTogglingUser, setIsTogglingUser] = useState(false);
+  const { showToast } = useToast();
+
+  function getRejectedCount(userId?: string) {
+    if (!userId) return 0;
+    return papers.filter((p) => {
+    const requesterId = p.requestedBy?._id;
+    return String(requesterId) === String(userId) && p.status === 'rejected';
+  }).length;
+  }
+
+  const toggleUserStatus = async (userId?: string) => {
+    if (!userId || !selectedUserProfile) return;
+    const nextStatus = selectedUserProfile.status === 'banned' ? 'active' : 'banned';
+    setIsTogglingUser(true);
+    try {
+      await apiRequest(`/users/${userId}/status`, {
+        method: 'PATCH',
+        auth: true,
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      // Update selected profile
+      setSelectedUserProfile({ ...selectedUserProfile, status: nextStatus });
+
+      // Sync status to all loaded papers where this user is the requester
+      setPapers((prev) =>
+        prev.map((paper) => {
+          const requesterId = paper.requestedBy?._id;
+          if (String(requesterId) === String(userId) && paper.requestedBy) {
+            return { ...paper, requestedBy: { ...paper.requestedBy, status: nextStatus } };
+          }
+          return paper;
+        })
+      );
+
+      showToast(`User ${nextStatus === 'banned' ? 'banned' : 'unbanned'} successfully.`, 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to update user status', 'error');
+    } finally {
+      setIsTogglingUser(false);
+      setShowConfirmToggle(false);
+      setPendingToggleUserId(null);
+    }
+  };
+
+  const requestToggleUserStatus = (userId?: string) => {
+    if (!userId) return;
+    setPendingToggleUserId(userId);
+    setShowConfirmToggle(true);
+  };
 
   async function loadPapers() {
     setIsLoading(true);
@@ -108,6 +174,22 @@ export function PaperManagementPage() {
   const handleOpenEditModal = (paper: AdminPaper) => {
     setSelectedPaper(paper);
     setEditModalOpen(true);
+  };
+
+  const handleViewUser = async (userId?: string) => {
+    if (!userId) return;
+    setIsLoadingUserDetails(true);
+    setError('');
+
+    try {
+      const data = await apiRequest<{ user: any }>(`/users/${userId}`, { auth: true });
+      setSelectedUserProfile(data.user);
+      setShowUserModal(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load user profile');
+    } finally {
+      setIsLoadingUserDetails(false);
+    }
   };
 
   const handleOpenPdf = async (paper: AdminPaper) => {
@@ -197,6 +279,8 @@ export function PaperManagementPage() {
     setMessage('');
     setIsDeletingPaper(true);
 
+    showToast('Deleting paper...', 'info');
+
     try {
       await apiRequest(`/papers/${paperToDelete._id}`, {
         method: 'DELETE',
@@ -208,6 +292,7 @@ export function PaperManagementPage() {
       setMessage('Paper deleted successfully.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to delete paper');
+      showToast(err instanceof Error ? err.message : 'Unable to delete paper', 'error');
     } finally {
       setIsDeletingPaper(false);
     }
@@ -356,8 +441,16 @@ export function PaperManagementPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-foreground">{paper.requestedBy?.fullName || 'Unknown'}</p>
-                          {/* Student ID removed */}
+                              <p className="text-foreground">
+                                <button
+                                  type="button"
+                                  onClick={() => handleViewUser(paper.requestedBy?._id)}
+                                  className="text-left text-foreground hover:underline"
+                                >
+                                  {paper.requestedBy?.fullName || 'Unknown'}
+                                </button>
+                              </p>
+                              {/* Student ID removed */}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">{paper.requestedBy?.university || 'N/A'}</td>
@@ -478,6 +571,98 @@ export function PaperManagementPage() {
           onConfirm={handleDelete}
           onCancel={() => setPaperToDelete(null)}
         />
+        <ConfirmDialog
+          isOpen={showConfirmToggle}
+          title={selectedUserProfile?.status === 'banned' ? 'Unban user?' : 'Ban user?'}
+          description={`Are you sure you want to ${selectedUserProfile?.status === 'banned' ? 'unban' : 'ban'} ${
+            selectedUserProfile?.fullName || 'this user'
+          }?`}
+          confirmLabel={selectedUserProfile?.status === 'banned' ? 'Unban user' : 'Ban user'}
+          isLoading={isTogglingUser}
+          onConfirm={() => toggleUserStatus(pendingToggleUserId || undefined)}
+          onCancel={() => {
+            setShowConfirmToggle(false);
+            setPendingToggleUserId(null);
+          }}
+        />
+        {showUserModal && selectedUserProfile && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+              <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-border p-6">
+                <div>
+                  <p className="text-sm text-muted-foreground">User profile</p>
+                  <h2 className="text-foreground">{selectedUserProfile.fullName || 'User Details'}</h2>
+                </div>
+                <button
+                  onClick={() => setShowUserModal(false)}
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
+                  aria-label="Close user details"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="max-h-[calc(90vh-156px)] overflow-y-auto overscroll-contain p-6">
+                {isLoadingUserDetails ? (
+                  <div className="mb-4 rounded-lg border border-border bg-white p-4 text-muted-foreground">Loading latest profile...</div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <p className="text-muted-foreground mb-1">Full Name</p>
+                      <p className="text-foreground">{selectedUserProfile.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Email</p>
+                      <p className="text-foreground">{selectedUserProfile.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">University</p>
+                      <p className="text-foreground">{selectedUserProfile.university}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Join Date</p>
+                      <p className="text-foreground">{formatDisplayDate(selectedUserProfile.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Role</p>
+                      <p className="text-foreground">{selectedUserProfile.role || 'user'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Status</p>
+                      <p className="text-foreground">{selectedUserProfile.status || 'active'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground mb-1">Rejected Requests</p>
+                      <p className="text-foreground">{getRejectedCount(selectedUserProfile._id)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+                  <div className="flex gap-4 p-6 border-t border-border">
+                <div className="flex-1">
+                  <button
+                    onClick={() => requestToggleUserStatus(selectedUserProfile._id)}
+                    disabled={selectedUserProfile._id === getStoredUser()?._id}
+                    className={`w-full px-6 py-3 rounded-lg text-white transition-colors ${
+                      selectedUserProfile.status === 'banned' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                    }`}
+                  >
+                    {selectedUserProfile.status === 'banned' ? 'Unban User' : 'Ban User'}
+                  </button>
+                </div>
+                <div className="flex-1">
+                  <button
+                    onClick={() => setShowUserModal(false)}
+                    className="w-full px-6 py-3 border border-border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
