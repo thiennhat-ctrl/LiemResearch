@@ -16,8 +16,13 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsPath = path.resolve(__dirname, '../uploads');
+const extraClientUrls = (process.env.CLIENT_URLS || '')
+  .split(',')
+  .map((url) => url.trim())
+  .filter(Boolean);
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  ...extraClientUrls,
   `http://localhost:${process.env.PORT || 5000}`,
   `http://127.0.0.1:${process.env.PORT || 5000}`,
   'http://localhost:5173',
@@ -28,7 +33,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
       callback(null, true);
       return;
     }

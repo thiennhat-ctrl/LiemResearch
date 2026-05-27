@@ -69,10 +69,16 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (token) headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (_error) {
+    throw new Error(`Unable to connect to API server at ${API_BASE_URL}`);
+  }
 
   const data = await response.json().catch(() => ({}));
 

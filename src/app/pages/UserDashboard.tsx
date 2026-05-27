@@ -26,6 +26,8 @@ export function UserDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<FeedTab>('newest');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [papers, setPapers] = useState<PublicPaper[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -52,12 +54,14 @@ export function UserDashboard() {
       } else {
         params.set('sortBy', activeTab);
       }
-      params.set('limit', '100');
+      params.set('page', String(page));
+      params.set('limit', '5');
 
-      const data = await apiRequest<{ papers: PublicPaper[] }>(`/public-papers?${params.toString()}`, {
+      const data = await apiRequest<{ papers: PublicPaper[]; pagination?: { totalPages?: number } }>(`/public-papers?${params.toString()}`, {
         auth: true,
       });
       setPapers(data.papers);
+      setTotalPages(data.pagination?.totalPages ?? 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load papers');
     } finally {
@@ -71,7 +75,7 @@ export function UserDashboard() {
     }, 250);
 
     return () => window.clearTimeout(timeoutId);
-  }, [searchTerm, yearFilter, activeTab]);
+  }, [page, searchTerm, yearFilter, activeTab]);
 
   const years = Array.from(new Set(papers.map((paper) => String(paper.publishedYear)))).sort((a, b) =>
     b.localeCompare(a)
@@ -109,7 +113,10 @@ export function UserDashboard() {
         <SubNavbar 
           items={feedTabs}
           activeValue={activeTab}
-          onSelect={(value) => setActiveTab(value as FeedTab)}
+          onSelect={(value) => {
+            setPage(1);
+            setActiveTab(value as FeedTab);
+          }}
           title="Filter by"
         />
         <div className="p-8">
@@ -147,7 +154,10 @@ export function UserDashboard() {
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setPage(1);
+                    setSearchTerm(e.target.value);
+                  }}
                   placeholder="Search by title, author, DOI, keywords, or journal..."
                   maxLength={128}
                   className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
@@ -157,7 +167,10 @@ export function UserDashboard() {
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
                 <select
                   value={yearFilter}
-                  onChange={(e) => setYearFilter(e.target.value)}
+                  onChange={(e) => {
+                    setPage(1);
+                    setYearFilter(e.target.value);
+                  }}
                   className="pl-10 pr-8 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background appearance-none"
                 >
                   <option value="all">All Years</option>
@@ -186,17 +199,45 @@ export function UserDashboard() {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {papers.map((paper) => (
-                <PaperCard
-                  key={paper._id}
-                  paper={paper}
-                  variant="dashboard"
-                  onOpen={(selectedPaper) => navigate(`/paper/${selectedPaper._id}`)}
-                  onDownload={handleDownload}
-                />
-              ))}
-            </div>
+            <>
+              <div className="space-y-4">
+                {papers.map((paper) => (
+                  <PaperCard
+                    key={paper._id}
+                    paper={paper}
+                    variant="dashboard"
+                    onOpen={(selectedPaper) => navigate(`/paper/${selectedPaper._id}`)}
+                    onDownload={handleDownload}
+                  />
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-between gap-4 rounded-lg border border-border bg-white px-4 py-3 shadow-sm">
+                  <p className="text-sm text-muted-foreground">
+                    Page {page} of {totalPages}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                      disabled={page === 1 || isLoading}
+                      className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+                      disabled={page === totalPages || isLoading}
+                      className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           </div>
         </div>
