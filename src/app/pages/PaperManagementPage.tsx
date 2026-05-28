@@ -10,6 +10,7 @@ import { Search, Upload, Download, Eye, Filter, Check, X, Edit, Trash2 } from 'l
 import { apiRequest, resolveFileUrl, getStoredUser } from '../lib/api';
 import { formatDisplayDate } from '../lib/date';
 import { useToast } from '../components/ToastProvider';
+import { getPaperType } from '../lib/papers';
 
 type PaperStatus = 'pending' | 'downloaded' | 'not-downloaded' | 'approved' | 'rejected' | 'pending-requester-acceptance';
 
@@ -141,10 +142,13 @@ export function PaperManagementPage() {
   const filteredPapers = papers.filter((paper) => {
     const normalizedSearch = searchTerm.toLowerCase();
     const requesterName = paper.requestedBy?.fullName || '';
+    const authorsText = paper.authors?.join(', ') || '';
     const matchesSearch =
       paper.title.toLowerCase().includes(normalizedSearch) ||
       paper.doi.toLowerCase().includes(normalizedSearch) ||
-      requesterName.toLowerCase().includes(normalizedSearch);
+      (paper.paperType || '').toLowerCase().includes(normalizedSearch) ||
+      requesterName.toLowerCase().includes(normalizedSearch) ||
+      authorsText.toLowerCase().includes(normalizedSearch);
 
     const matchesStatus = filterStatus === 'all' || paper.status === filterStatus;
     const matchesYear = filterYear === 'all' || paper.createdAt.startsWith(filterYear);
@@ -275,10 +279,14 @@ export function PaperManagementPage() {
         body: JSON.stringify({
           title: editedPaper.title,
           doi: editedPaper.doi,
+          paperType: editedPaper.paperType,
           paperLink: editedPaper.paperLink,
+          authors: editedPaper.authors,
           abstract: editedPaper.abstract,
           keywords: editedPaper.keywords,
-          publishedYear: editedPaper.publishedYear,
+            publishedYear: editedPaper.publishedYear,
+            relatedSemesters: editedPaper.relatedSemesters,
+            applicationDomain: editedPaper.applicationDomain,
           status: editedPaper.status,
         }),
       });
@@ -317,11 +325,15 @@ export function PaperManagementPage() {
   };
 
   const exportPapers = (items: AdminPaper[], filename: string) => {
-      const csvContent = [
-      ['Title', 'DOI', 'Requested By', 'University', 'Date', 'Status'],
+    const csvContent = [
+      ['Title', 'DOI', 'Paper Type', 'Authors', 'Application Domain', 'Related Semesters', 'Requested By', 'University', 'Date', 'Status'],
       ...items.map((paper) => [
         paper.title,
         paper.doi,
+        paper.paperType,
+        paper.authors?.join(', '),
+        paper.applicationDomain || '',
+        (paper.relatedSemesters || []).join(', '),
         paper.requestedBy?.fullName,
         paper.requestedBy?.university,
         formatDisplayDate(paper.createdAt),
@@ -455,6 +467,10 @@ export function PaperManagementPage() {
                         <div>
                           <p className="text-foreground">{paper.title}</p>
                           <p className="text-muted-foreground">DOI: {paper.doi}</p>
+                          <p className="text-muted-foreground">Type: {getPaperType(paper)}</p>
+                          <p className="text-muted-foreground">Authors: {paper.authors?.join(', ') || 'N/A'}</p>
+                          <p className="text-muted-foreground">Domain: {paper.applicationDomain || 'N/A'}</p>
+                          <p className="text-muted-foreground">Semesters: {(paper.relatedSemesters || []).map((s) => s).join(', ') || 'N/A'}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">

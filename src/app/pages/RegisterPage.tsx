@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { BookOpen, Building2, CheckCircle2, CreditCard, Lock, Mail, ShieldCheck, User } from 'lucide-react';
+import { BookOpen, Building2, CheckCircle2, Lock, Mail, ShieldCheck, User } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser, getToken } from '../lib/api';
 import { useToast } from '../components/ToastProvider';
 
@@ -53,7 +53,6 @@ export function RegisterPage() {
     }
 
     // studentId removed from registration
-
     if (!isValidEmail(formData.email)) {
       setError('Please enter a valid email address.');
       return;
