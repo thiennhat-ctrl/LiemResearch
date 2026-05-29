@@ -11,10 +11,11 @@ import {
   ShieldCheck,
   Star,
   Trophy,
+  HelpCircle,
   Upload,
 } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser } from '../lib/api';
-import { calculateCurrentRank } from '../lib/userRanking';
+import { calculateCurrentRank, RANK_LEVELS } from '../lib/userRanking';
 import { getRankImage } from '../lib/rankVisuals';
 
 interface UserRank {
@@ -115,6 +116,16 @@ export function UserRankingPage() {
   const topThree = rankings.slice(0, 3);
   const totalPoints = useMemo(() => rankings.reduce((sum, item) => sum + item.points, 0), [rankings]);
   const currentAcademicRank = currentRank ? calculateCurrentRank(currentRank.points, currentRank.uploadedPapers) : null;
+  const [showRankInfo, setShowRankInfo] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowRankInfo(false);
+    }
+
+    if (showRankInfo) document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showRankInfo]);
 
   return (
     <div className="flex min-h-screen bg-surface-achievement bg-fixed">
@@ -124,7 +135,7 @@ export function UserRankingPage() {
         <AppHeader role="user" />
         <div className="p-8">
           <div className="mx-auto max-w-6xl">
-          <section className="mb-8 overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+          <section className="mb-8 overflow-hidden rounded-lg border border-border bg-white shadow-sm relative">
             <div className="bg-blue-600 px-8 py-8 text-white">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div>
@@ -148,6 +159,63 @@ export function UserRankingPage() {
                 </div>
               </div>
             </div>
+            <div className="absolute right-4 top-4 z-40">
+              <button
+                type="button"
+                onClick={() => setShowRankInfo((s) => !s)}
+                aria-label="Thông tin các cấp rank"
+                className="inline-flex items-center justify-center rounded-full bg-white/20 p-2 text-white hover:bg-white/30"
+              >
+                <HelpCircle size={18} />
+              </button>
+            </div>
+
+            {showRankInfo && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div
+                  className="absolute inset-0 bg-black/40"
+                  onClick={() => setShowRankInfo(false)}
+                />
+
+                <div className="relative z-10 w-full max-w-3xl rounded-lg bg-white p-6 shadow-2xl">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Cấp bậc (Levels)</h2>
+                    <button
+                      type="button"
+                      onClick={() => setShowRankInfo(false)}
+                      className="rounded px-2 py-1 text-sm text-muted-foreground hover:bg-muted"
+                    >
+                      Đóng
+                    </button>
+                  </div>
+
+                  <div className="mt-4 overflow-auto">
+                    <div className="grid grid-cols-12 gap-3 items-center font-medium text-sm text-muted-foreground">
+                      <div className="col-span-1">&nbsp;</div>
+                      <div className="col-span-1">Level</div>
+                      <div className="col-span-6">Name</div>
+                      <div className="col-span-2 text-right">Min Points</div>
+                      <div className="col-span-2 text-right">Min Papers</div>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {RANK_LEVELS.map((lvl) => (
+                        <div key={lvl.level} className="grid grid-cols-12 items-center rounded-md border border-border/40 bg-muted/30 p-2">
+                          <div className="col-span-1">
+                            <img src={getRankImage(lvl.level)} alt={lvl.name} className="h-8 w-8 object-contain" />
+                          </div>
+                          <div className="col-span-1 font-semibold">Lv. {lvl.level}</div>
+                          <div className="col-span-6 truncate">{lvl.name}</div>
+                          <div className="col-span-2 text-right font-medium">{lvl.minPoints.toLocaleString()}</div>
+                          <div className="col-span-2 text-right">{lvl.minPapers}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="mt-4 text-sm text-muted-foreground">Người dùng phải thỏa cả hai điều kiện điểm và số bài để đạt cấp tương ứng.</p>
+                </div>
+              </div>
+            )}
           </section>
 
           {error && (
