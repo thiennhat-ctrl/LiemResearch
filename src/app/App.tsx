@@ -15,10 +15,11 @@ import { AdminProfilePage } from './pages/AdminProfilePage';
 import { PaperManagementPage } from './pages/PaperManagementPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { PaperDetailPage } from './pages/PaperDetailPage';
-import { clearAuth, getStoredUser, getToken } from './lib/api';
+import { AUTH_CHANGED_EVENT, clearAuth, getStoredUser, getToken } from './lib/api';
 import { ToastProvider } from './components/ToastProvider';
 
 const LAST_PATH_KEY = 'last-pathname';
+const PUBLIC_PATHS = new Set(['/', '/login', '/register']);
 
 function AdminRouteGuard() {
   const location = useLocation();
@@ -53,6 +54,35 @@ function AdminRouteGuard() {
   return null;
 }
 
+function AuthSessionGuard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      if (!PUBLIC_PATHS.has(location.pathname) && (!getToken() || !getStoredUser())) {
+        navigate('/login', { replace: true });
+      }
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'token' || event.key === 'user') {
+        handleAuthChanged();
+      }
+    };
+
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChanged);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [location.pathname, navigate]);
+
+  return null;
+}
+
 function ProtectedRoute({
   children,
   role,
@@ -79,6 +109,7 @@ export default function App() {
     <Router>
       <ToastProvider>
         <AdminRouteGuard />
+        <AuthSessionGuard />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
