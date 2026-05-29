@@ -460,8 +460,8 @@ export async function getAllPapers(req, res) {
   }
 
   const papers = await Paper.find(filter)
-    .populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email')
+    .populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role')
     .sort({ createdAt: -1 });
 
   await normalizeContributorPdfReviewStatuses(papers);
@@ -475,8 +475,8 @@ export async function getPaperById(req, res) {
   }
 
   const paper = await Paper.findById(req.params.id)
-    .populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email');
+    .populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role');
 
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
@@ -660,8 +660,8 @@ export async function updatePaper(req, res) {
     new: true,
     runValidators: true,
   })
-    .populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email');
+    .populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role');
 
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
@@ -764,8 +764,8 @@ export async function uploadPaperPdf(req, res) {
       ...calculatePaperQuality({ ...existingPaper.toObject(), pdfPath: uploadedPdfPath }),
     },
     { new: true }
-  ).populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email');
+  ).populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role');
 
   if (!paper) {
     await deleteStoredPdf(uploadedPdfPath);
@@ -829,8 +829,8 @@ export async function acceptPaperPdf(req, res) {
     { status: 'downloaded', ...calculatePaperQuality(paper) },
     { new: true }
   )
-    .populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email');
+    .populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role');
 
   await applyUploadCreditReward(updatedPaper);
   await syncUserPoints(updatedPaper.requestedBy);
@@ -871,8 +871,8 @@ export async function rejectPaperPdf(req, res) {
     },
     { new: true }
   )
-    .populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email');
+    .populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role');
 
   if (rejectedUploader) {
     await recordInvalidPdfUpload(rejectedUploader);
@@ -905,8 +905,8 @@ export async function deletePaperPdf(req, res) {
     },
     { new: true }
   )
-    .populate('requestedBy', 'fullName email university')
-    .populate('uploadedBy', 'fullName university email');
+    .populate('requestedBy', 'fullName email university role')
+    .populate('uploadedBy', 'fullName university email role');
 
   if (!updatedPaper) return res.status(404).json({ message: 'Paper not found' });
 

@@ -17,12 +17,14 @@ export type PublicPaper = {
     fullName?: string;
     university?: string;
     email?: string;
+    role?: 'user' | 'admin';
   };
   requestedBy?: {
     _id: string;
     fullName?: string;
     university?: string;
     email?: string;
+    role?: 'user' | 'admin';
   };
   uploadedAt?: string;
   averageRating: number;

@@ -375,7 +375,13 @@ export function AdminProfilePage() {
                               Secure profile
                             </span>
                           </div>
-                          <h1 className="text-3xl font-semibold text-foreground">{profile.fullName || 'Admin Profile'}</h1>
+                          <h1 className="flex flex-wrap items-center gap-3 text-3xl font-semibold text-foreground">
+                            <span>{profile.fullName || 'Admin Profile'}</span>
+                            <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700">
+                              <ShieldCheck size={16} />
+                              Admin
+                            </span>
+                          </h1>
                           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
                             <span className="flex items-center gap-2">
                               <Building2 size={16} />

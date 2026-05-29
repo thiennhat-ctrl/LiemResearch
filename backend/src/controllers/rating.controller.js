@@ -62,7 +62,7 @@ async function migrateLegacyRatingComments(paperId) {
 }
 
 async function notifyPaperCommentRecipients({ paper, commenter, comment }) {
-  if (!comment.trim() || commenter.role !== 'user') {
+  if (!comment.trim()) {
     return;
   }
 
@@ -188,9 +188,9 @@ export async function createRating(req, res) {
     }
   }
 
-  const populatedRating = await Rating.findById(createdRating._id).populate('user', 'fullName university');
+  const populatedRating = await Rating.findById(createdRating._id).populate('user', 'fullName university role');
   const populatedComment = createdComment
-    ? await PaperComment.findById(createdComment._id).populate('user', 'fullName university')
+    ? await PaperComment.findById(createdComment._id).populate('user', 'fullName university role')
     : null;
 
   res.status(201).json({ rating: populatedRating, comment: populatedComment });
@@ -204,7 +204,7 @@ export async function getPaperRatings(req, res) {
   }
 
   const ratings = await Rating.find({ paper: paperId })
-    .populate('user', 'fullName university')
+    .populate('user', 'fullName university role')
     .sort({ createdAt: -1 });
 
   res.json({ ratings });
@@ -216,7 +216,7 @@ export async function getRatingById(req, res) {
   }
 
   const rating = await Rating.findById(req.params.id)
-    .populate('user', 'fullName university')
+    .populate('user', 'fullName university role')
     .populate('paper', 'title doi');
 
   if (!rating) {
@@ -268,7 +268,7 @@ export async function updateRating(req, res) {
     }
   }
 
-  const updatedRating = await Rating.findById(existingRating._id).populate('user', 'fullName university');
+  const updatedRating = await Rating.findById(existingRating._id).populate('user', 'fullName university role');
 
   res.json({ rating: updatedRating });
 }
@@ -283,7 +283,7 @@ export async function getPaperComments(req, res) {
   await migrateLegacyRatingComments(paperId);
 
   const comments = await PaperComment.find({ paper: paperId })
-    .populate('user', 'fullName university')
+    .populate('user', 'fullName university role')
     .sort({ createdAt: -1 });
 
   res.json({ comments: buildCommentThread(comments, [], req.user?._id) });
@@ -354,7 +354,7 @@ export async function createPaperComment(req, res) {
     }
   }
 
-  const populatedComment = await PaperComment.findById(createdComment._id).populate('user', 'fullName university');
+  const populatedComment = await PaperComment.findById(createdComment._id).populate('user', 'fullName university role');
 
   res.status(201).json({ comment: serializeComment(populatedComment, req.user._id) });
 }
@@ -364,7 +364,7 @@ export async function togglePaperCommentLike(req, res) {
     return res.status(400).json({ message: 'Invalid comment id' });
   }
 
-  const comment = await PaperComment.findById(req.params.id).populate('user', 'fullName university');
+  const comment = await PaperComment.findById(req.params.id).populate('user', 'fullName university role');
   if (!comment) {
     return res.status(404).json({ message: 'Comment not found' });
   }
