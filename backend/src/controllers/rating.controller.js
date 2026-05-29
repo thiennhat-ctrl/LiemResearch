@@ -7,6 +7,8 @@ import {
   notifyAdminsPaperRated,
   notifyAdminsPaperRatingDeleted,
   notifyAdminsPaperRatingUpdated,
+  notifyPaperCommentLiked,
+  notifyPaperCommentReplied,
   notifyPaperContributorsCommented,
 } from '../utils/notification.js';
 
@@ -338,6 +340,20 @@ export async function createPaperComment(req, res) {
     comment: normalizedComment,
   });
 
+  if (parentComment) {
+    try {
+      await notifyPaperCommentReplied({
+        paperId: paper._id,
+        paperTitle: paper.title,
+        replierName: req.user.fullName,
+        actorId: req.user._id,
+        commentOwnerId: parentComment.user,
+      });
+    } catch (error) {
+      console.error('Failed to create user notification for paper comment reply:', error);
+    }
+  }
+
   const populatedComment = await PaperComment.findById(createdComment._id).populate('user', 'fullName university');
 
   res.status(201).json({ comment: serializeComment(populatedComment, req.user._id) });
@@ -355,14 +371,31 @@ export async function togglePaperCommentLike(req, res) {
 
   const userId = req.user._id.toString();
   const likedBy = comment.likedBy.map((likedUserId) => likedUserId.toString());
+  let wasLiked = false;
 
   if (likedBy.includes(userId)) {
     comment.likedBy = comment.likedBy.filter((likedUserId) => likedUserId.toString() !== userId);
   } else {
     comment.likedBy.push(req.user._id);
+    wasLiked = true;
   }
 
   await comment.save();
+
+  if (wasLiked) {
+    try {
+      const paper = await Paper.findById(comment.paper).select('title');
+      await notifyPaperCommentLiked({
+        paperId: comment.paper,
+        paperTitle: paper?.title || 'Unknown paper',
+        likerName: req.user.fullName,
+        actorId: req.user._id,
+        commentOwnerId: comment.user?._id || comment.user,
+      });
+    } catch (error) {
+      console.error('Failed to create user notification for paper comment like:', error);
+    }
+  }
 
   res.json({ comment: serializeComment(comment, req.user._id) });
 }

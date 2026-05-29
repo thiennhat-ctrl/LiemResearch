@@ -15,6 +15,8 @@ const notificationSchema = new mongoose.Schema(
         'paper_rating_deleted',
         'paper_approved',
         'paper_commented',
+        'paper_comment_replied',
+        'paper_comment_liked',
       ],
       required: true,
     },
