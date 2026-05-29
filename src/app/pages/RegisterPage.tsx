@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { BookOpen, Building2, CheckCircle2, Lock, Mail, ShieldCheck, User } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser, getToken } from '../lib/api';
 import { useToast } from '../components/ToastProvider';
+import { UNIVERSITY_LIST_VN } from '../lib/universities';
 
 export function RegisterPage() {
   const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
@@ -17,6 +18,11 @@ export function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUniversityOpen, setIsUniversityOpen] = useState(false);
+
+  const filteredUniversities = UNIVERSITY_LIST_VN.filter((university) =>
+    university.toLowerCase().includes(formData.university.trim().toLowerCase())
+  ).slice(0, 8);
 
   // Kiểm tra nếu đã đăng nhập, tự động chuyển hướng
   useEffect(() => {
@@ -33,6 +39,15 @@ export function RegisterPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
+  };
+
+  const handleUniversitySelect = (university: string) => {
+    setFormData({
+      ...formData,
+      university,
+    });
+    setIsUniversityOpen(false);
     setError('');
   };
 
@@ -144,14 +159,23 @@ export function RegisterPage() {
                 placeholder="Nguyen Van A"
                 autoComplete="name"
               />
-              <TextInput
+              <UniversitySearchInput
                 label="University"
-                name="university"
                 value={formData.university}
-                onChange={handleChange}
+                onChange={(value) => {
+                  setFormData({ ...formData, university: value });
+                  setIsUniversityOpen(true);
+                  setError('');
+                }}
+                onSelect={handleUniversitySelect}
+                onFocus={() => setIsUniversityOpen(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setIsUniversityOpen(false), 150);
+                }}
+                isOpen={isUniversityOpen}
+                suggestions={filteredUniversities}
                 icon={Building2}
-                placeholder="FPT University"
-                autoComplete="organization"
+                placeholder="Search and select your university"
               />
               <TextInput
                 label="Email"
@@ -271,22 +295,79 @@ function TextInput({
   );
 }
 
+function UniversitySearchInput({
+  label,
+  value,
+  onChange,
+  onSelect,
+  onFocus,
+  onBlur,
+  isOpen,
+  suggestions,
+  icon: Icon,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (value: string) => void;
+  onFocus: () => void;
+  onBlur: () => void;
+  isOpen: boolean;
+  suggestions: string[];
+  icon: typeof User;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative">
+      <label className="mb-2 block text-foreground">{label}</label>
+      <div className="relative">
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+        <input
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder={placeholder}
+          autoComplete="off"
+          required
+        />
+      </div>
+
+      {isOpen && suggestions.length > 0 && (
+        <div className="absolute z-20 mt-2 max-h-56 w-full overflow-auto rounded-lg border border-border bg-white shadow-lg">
+          {suggestions.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onSelect(item)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-accent"
+            >
+              <Building2 size={16} className="text-muted-foreground" />
+              <span className="truncate">{item}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function validateUniversity(value: string) {
   const university = value.trim().replace(/\s+/g, ' ');
-  const words = university.split(' ').filter(Boolean);
-  const hasLetters = /\p{L}/u.test(university);
-  const hasUniversityWord = /\b(university|college|institute|academy|school|dai hoc|truong|fpt|hutech|rmit)\b|đại học|trường/i.test(university);
-
-  if (university.length < 5 || !hasLetters) {
-    return 'Please enter a valid university name.';
+  if (!university) {
+    return 'Please select your university.';
   }
 
-  if (!/^[\p{L}0-9\s.'&-]+$/u.test(university)) {
-    return 'University name contains invalid characters.';
-  }
+  const isMatch = UNIVERSITY_LIST_VN.some(
+    (item) => item.trim().replace(/\s+/g, ' ').toLowerCase() === university.toLowerCase()
+  );
 
-  if (words.length < 2 && !hasUniversityWord) {
-    return 'Please enter the full university name.';
+  if (!isMatch) {
+    return 'Please choose a university from the list.';
   }
 
   return '';
