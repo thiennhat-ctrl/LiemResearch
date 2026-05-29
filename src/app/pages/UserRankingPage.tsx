@@ -4,6 +4,7 @@ import { AppHeader } from '../components/AppHeader';
 import {
   Award,
   ChevronDown,
+  Crown,
   FileText,
   Medal,
   MinusCircle,
@@ -123,27 +124,29 @@ export function UserRankingPage() {
       <div className="flex-1">
         <AppHeader role="user" />
         <div className="p-8">
-          <div className="mx-auto max-w-6xl">
-          <section className="mb-8 overflow-hidden rounded-lg border border-border bg-white shadow-sm">
-            <div className="bg-blue-600 px-8 py-8 text-white">
+          <div className="mx-auto max-w-7xl">
+          <section className="mb-8">
+            <div className="rounded-lg border border-border bg-white px-8 py-8 shadow-sm">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-md bg-white/15 px-3 py-1 text-sm font-medium">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
                     <Trophy size={16} />
                     Community leaderboard
                   </div>
-                  <h1 className="text-3xl font-semibold">User Rankings</h1>
-                  <p className="mt-2 max-w-2xl text-blue-50">
-                    Contributors ranked by approved papers, accepted PDFs, useful ratings, and small penalties for rejected work.
+                  <h1 className="text-3xl font-semibold text-foreground">User Rankings</h1>
+                  <p className="mt-2 max-w-2xl text-muted-foreground">
+                    Track the strongest contributors by approved papers, accepted PDFs, useful ratings, and review quality.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  <HeroMetric label="Contributors" value={totalContributors} />
-                  <HeroMetric label="Page Points" value={totalPoints} />
+                  <HeroMetric label="Contributors" value={totalContributors} icon={Award} tone="blue" />
+                  <HeroMetric label="Page Points" value={totalPoints} icon={Trophy} tone="emerald" />
                   <HeroMetric
                     label="Your Rank"
-                    value={currentRank && currentAcademicRank ? `#${currentRank.rank} · Lv. ${currentAcademicRank.level}` : 'N/A'}
+                    icon={ShieldCheck}
+                    tone="amber"
+                    value={currentRank && currentAcademicRank ? `#${currentRank.rank} / Lv. ${currentAcademicRank.level}` : 'N/A'}
                   />
                 </div>
               </div>
@@ -163,18 +166,33 @@ export function UserRankingPage() {
           )}
 
           {!isLoading && rankings.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
               <main className="space-y-6">
-                <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  {topThree.map((item) => (
-                    <TopContributorCard key={item.user._id} item={item} isCurrentUser={item.user._id === currentUser?._id} />
-                  ))}
+                <section className="rounded-lg border border-border bg-white p-5 shadow-sm">
+                  <div className="mb-5 flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-foreground">Top Contributors</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">The current page's highest ranked contributors.</p>
+                    </div>
+                    <Crown size={24} className="text-amber-500" />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    {topThree.map((item) => (
+                      <TopContributorCard key={item.user._id} item={item} isCurrentUser={item.user._id === currentUser?._id} />
+                    ))}
+                  </div>
                 </section>
 
                 <section className="rounded-lg border border-border bg-white shadow-sm">
-                  <div className="border-b border-border px-6 py-5">
-                    <h3 className="text-foreground">Leaderboard</h3>
-                    <p className="mt-1 text-muted-foreground">Score breakdown is shown beside each contributor.</p>
+                  <div className="flex flex-col gap-2 border-b border-border px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-foreground">Leaderboard</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">Score breakdown is shown beside each contributor.</p>
+                    </div>
+                    <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+                      {rankings.length} shown
+                    </div>
                   </div>
 
                   <div className="divide-y divide-border">
@@ -253,11 +271,30 @@ export function UserRankingPage() {
   );
 }
 
-function HeroMetric({ label, value }: { label: string; value: number | string }) {
+function HeroMetric({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof FileText;
+  label: string;
+  value: number | string;
+  tone: 'blue' | 'emerald' | 'amber';
+}) {
+  const toneStyles = {
+    blue: 'border-blue-200 bg-blue-50 text-blue-700',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    amber: 'border-amber-200 bg-amber-50 text-amber-700',
+  };
+
   return (
-    <div className="rounded-lg bg-white/15 px-4 py-3">
-      <p className="text-sm text-blue-50">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+    <div className={`rounded-lg border px-4 py-3 ${toneStyles[tone]}`}>
+      <div className="mb-2 flex items-center gap-2">
+        <Icon size={18} />
+        <p className="text-sm font-medium">{label}</p>
+      </div>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
   );
 }
@@ -265,9 +302,9 @@ function HeroMetric({ label, value }: { label: string; value: number | string })
 function TopContributorCard({ item, isCurrentUser }: { item: UserRank; isCurrentUser: boolean }) {
   const academicRank = calculateCurrentRank(item.points, item.uploadedPapers);
   const rankStyles = {
-    1: 'border-yellow-300 bg-yellow-50',
-    2: 'border-gray-300 bg-gray-50',
-    3: 'border-amber-300 bg-amber-50',
+    1: 'border-amber-300 bg-amber-50',
+    2: 'border-slate-300 bg-slate-50',
+    3: 'border-orange-300 bg-orange-50',
   };
 
   return (
@@ -287,7 +324,7 @@ function TopContributorCard({ item, isCurrentUser }: { item: UserRank; isCurrent
 
       <AcademicRankBadge rank={academicRank} className="mb-4" />
 
-      <div className="mb-4 rounded-lg bg-white p-4">
+      <div className="mb-4 border-y border-current/10 py-4">
         <p className="text-sm text-muted-foreground">Total score</p>
         <p className="text-3xl font-semibold text-foreground">{item.points}</p>
       </div>
@@ -307,8 +344,8 @@ function LeaderboardRow({ item, isCurrentUser }: { item: UserRank; isCurrentUser
   const negativePoints = item.rejectedPapers * 10 + item.rejectedPdfs * 10 + (item.penaltyPoints || 0);
 
   return (
-    <div className={`grid grid-cols-1 gap-4 px-6 py-5 transition-colors lg:grid-cols-[72px_1fr_220px_100px] lg:items-center ${
-      isCurrentUser ? 'bg-blue-50' : 'hover:bg-accent'
+    <div className={`grid grid-cols-1 gap-4 px-6 py-5 transition-colors lg:grid-cols-[72px_minmax(0,1fr)_240px_120px] lg:items-center ${
+      isCurrentUser ? 'bg-blue-50/70' : 'hover:bg-accent'
     }`}>
       <div className="flex items-center gap-3">
         <RankIcon rank={item.rank} compact />
@@ -360,11 +397,11 @@ function MyRankCard({ item }: { item: UserRank }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg bg-muted p-4">
+        <div className="rounded-lg border border-border bg-muted/40 p-4">
           <p className="text-sm text-muted-foreground">Rank</p>
           <p className="text-2xl font-semibold text-foreground">#{item.rank}</p>
         </div>
-        <div className="rounded-lg bg-muted p-4">
+        <div className="rounded-lg border border-border bg-muted/40 p-4">
           <p className="text-sm text-muted-foreground">Points</p>
           <p className="text-2xl font-semibold text-foreground">{item.points}</p>
         </div>
@@ -390,18 +427,17 @@ function AcademicRankBadge({
 
   return (
     <div
-      className={`inline-flex w-fit items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-blue-900 shadow-sm ${className}`}
+      className={`inline-flex w-fit max-w-full items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-blue-900 shadow-sm ${className}`}
     >
       <img
         src={image}
         alt={rank.name}
-        className={compact ? 'h-7 w-7 object-contain' : 'h-10 w-10 object-contain'}
+        className={compact ? 'h-9 w-9 object-contain' : 'h-12 w-12 object-contain'}
       />
       <div className="min-w-0">
         <p className={compact ? 'text-xs font-semibold leading-4' : 'text-sm font-semibold leading-5'}>
           Lv. {rank.level} · {rank.name}
         </p>
-        {!compact && <p className="text-xs text-blue-700">Visible on your leaderboard profile</p>}
       </div>
     </div>
   );
@@ -481,7 +517,7 @@ function MiniStat({
   label: string;
 }) {
   return (
-    <div className="rounded-lg bg-white/70 p-3">
+    <div className="rounded-lg bg-white/60 p-3">
       <div className="mb-1 flex items-center gap-1 text-muted-foreground">
         <Icon size={14} />
         <span className="text-xs">{label}</span>
