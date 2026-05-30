@@ -53,7 +53,7 @@ export function AppRoutes() {
 
         {/* 404 catch-all */}
         <Route path="*" element={<NotFoundPage />} />
-      </Route>
+      </Route> 
 
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
