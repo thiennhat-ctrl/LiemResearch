@@ -1,24 +1,16 @@
 import { Router } from "express";
 import { AppError } from "../../common/exceptions/app-error.js";
-import { PaperModel } from "./models/paper.model.js";
+import { paperService } from "./paper.service.js";
 
 export const paperRouter: Router = Router();
 
-/** Minimal search endpoint — keyword over title+abstract. Phase 1. */
+/** GET /papers?q=&page=&pageSize= — keyword search + pagination. */
 paperRouter.get("/", async (req, res) => {
   const q = (req.query.q as string | undefined)?.trim();
   const page = Math.max(1, Number(req.query.page) || 1);
   const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize) || 20));
 
-  const filter = q ? { $text: { $search: q } } : {};
-  const [papers, total] = await Promise.all([
-    PaperModel.find(filter)
-      .sort({ publicationYear: -1, citationCount: -1 })
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
-      .lean(),
-    PaperModel.countDocuments(filter),
-  ]);
+  const { papers, total } = await paperService.list({ q, page, pageSize });
 
   res.json({
     success: true,
@@ -27,8 +19,9 @@ paperRouter.get("/", async (req, res) => {
   });
 });
 
+/** GET /papers/:id — single paper detail. */
 paperRouter.get("/:id", async (req, res) => {
-  const paper = await PaperModel.findById(req.params.id).lean();
+  const paper = await paperService.getById(req.params.id);
   if (!paper) throw AppError.notFound("Paper not found");
   res.json({ success: true, data: paper });
 });

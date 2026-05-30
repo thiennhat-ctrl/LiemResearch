@@ -18,6 +18,10 @@ nodeLinker: hoisted
 # All four are trusted, widely used, mainstream packages.
 allowBuilds:
   '@google/genai': true
+  # @scarf/scarf is analytics/telemetry pulled in by swagger-ui-express.
+  # We deny its postinstall — we don't want it phoning home, and the package
+  # works fine without its build step.
+  '@scarf/scarf': false
   esbuild: true
   msgpackr-extract: true
   protobufjs: true
