@@ -3,10 +3,7 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 
-/**
- * Light/dark mode toggle. Persists in localStorage via next-themes.
- * Mount once in MainLayout header.
- */
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
@@ -15,15 +12,21 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(next)}
+      variant="outline"
       aria-label={label}
       title={label}
+      className="rounded-full bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white px-4 py-2 font-bold flex gap-2 items-center shadow-lg"
+      onClick={() => setTheme(next)}
     >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">{label}</span>
+      {theme === "dark" ? (
+        <>
+          <Sun className="h-5 w-5" /> Light Mode
+        </>
+      ) : (
+        <>
+          <Moon className="h-5 w-5" /> Dark Mode
+        </>
+      )}
     </Button>
   );
 }

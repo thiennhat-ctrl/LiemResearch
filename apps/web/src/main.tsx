@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import App from "./App";
 import { queryClient } from "./services/query-client";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./theme/globals.css";
 
 const root = document.getElementById("root");

@@ -10,7 +10,6 @@
     "allowImportingTsExtensions": true,
     "useDefineForClassFields": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"]
