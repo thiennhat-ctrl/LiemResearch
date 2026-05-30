@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { queryClient } from "./services/query-client";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./theme/globals.css";
 
 const root = document.getElementById("root");
@@ -14,12 +15,14 @@ if (!root) throw new Error("Missing #root element");
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-        <Toaster richColors closeButton position="top-right" />
-      </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+          <Toaster richColors closeButton position="top-right" />
+        </BrowserRouter>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 );
