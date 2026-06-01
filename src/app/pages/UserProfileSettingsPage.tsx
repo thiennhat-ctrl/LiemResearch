@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { Bell, Lock, Palette, Save, Settings2, User } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
-import { apiRequest, AuthUser, getStoredUser, getToken, saveAuth } from '../lib/api';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { apiRequest, AuthUser, clearAuth, getStoredUser, getToken, saveAuth } from '../lib/api';
 
 type SettingsSection = 'profile' | 'customization' | 'notifications' | 'account';
 
@@ -16,7 +17,10 @@ const emptyProfile: ProfileForm = { fullName: '', university: '', email: '' };
 
 export function UserProfileSettingsPage() {
   const storedUser = getStoredUser();
-  const [activeSection, setActiveSection] = useState<SettingsSection>('profile');
+  const { section = 'profile' } = useParams();
+  const activeSection: SettingsSection = ['profile', 'customization', 'notifications', 'account'].includes(section)
+    ? (section as SettingsSection)
+    : 'profile';
   const [profile, setProfile] = useState<ProfileForm>(
     storedUser ? { fullName: storedUser.fullName, university: storedUser.university, email: storedUser.email } : emptyProfile
   );
@@ -24,6 +28,9 @@ export function UserProfileSettingsPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const profileHandle = profile.fullName.trim().toLowerCase().replace(/\s+/g, '_') || 'profile';
 
   useEffect(() => {
@@ -83,6 +90,26 @@ export function UserProfileSettingsPage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    setError('');
+    setIsDeletingAccount(true);
+
+    try {
+      await apiRequest('/auth/me', {
+        method: 'DELETE',
+        auth: true,
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      clearAuth();
+      window.location.href = '/login';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to delete account.');
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f5f3f0]">
       <AppHeader role="user" />
@@ -93,10 +120,10 @@ export function UserProfileSettingsPage() {
             @{profileHandle}
           </Link>
           <nav className="space-y-1">
-            <SettingsNav icon={User} label="Profile" active={activeSection === 'profile'} onClick={() => setActiveSection('profile')} />
-            <SettingsNav icon={Palette} label="Customization" active={activeSection === 'customization'} onClick={() => setActiveSection('customization')} />
-            <SettingsNav icon={Bell} label="Notifications" active={activeSection === 'notifications'} onClick={() => setActiveSection('notifications')} />
-            <SettingsNav icon={Settings2} label="Account" active={activeSection === 'account'} onClick={() => setActiveSection('account')} />
+            <SettingsNav to="/settings/profile" icon={User} label="Profile" active={activeSection === 'profile'} />
+            <SettingsNav to="/settings/customization" icon={Palette} label="Customization" active={activeSection === 'customization'} />
+            <SettingsNav to="/settings/notifications" icon={Bell} label="Notifications" active={activeSection === 'notifications'} />
+            <SettingsNav to="/settings/account" icon={Settings2} label="Account" active={activeSection === 'account'} />
           </nav>
         </aside>
 
@@ -125,6 +152,7 @@ export function UserProfileSettingsPage() {
           )}
 
           {activeSection === 'account' && (
+            <div className="space-y-6">
             <SettingsCard title="Account">
               <form onSubmit={handleChangePassword} className="max-w-xl space-y-5">
                 <div className="flex items-center gap-2">
@@ -139,19 +167,58 @@ export function UserProfileSettingsPage() {
                 </button>
               </form>
             </SettingsCard>
+
+            <div className="rounded-lg border border-red-200 bg-white p-6 shadow-sm md:p-8">
+              <h2 className="text-2xl font-semibold text-red-600">Danger Zone</h2>
+              <h3 className="mt-7 text-lg font-semibold text-foreground">Delete account</h3>
+              <p className="mt-3 text-muted-foreground">
+                Deleting your account will permanently remove your profile and your paper requests. This action cannot be undone.
+              </p>
+              <div className="mt-5 max-w-xl">
+                <label className="block">
+                  <span className="mb-2 block font-medium text-foreground">Confirm your password</span>
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(event) => setDeletePassword(event.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full rounded-md border border-border bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={!deletePassword}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="mt-4 rounded-md bg-red-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Delete account
+                </button>
+              </div>
+            </div>
+            </div>
           )}
         </section>
       </main>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete your account?"
+        description="This will permanently delete your profile and paper requests, then sign you out."
+        confirmLabel="Delete account"
+        isLoading={isDeletingAccount}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
 
-function SettingsNav({ icon: Icon, label, active, onClick }: { icon: typeof User; label: string; active: boolean; onClick: () => void }) {
+function SettingsNav({ to, icon: Icon, label, active }: { to: string; icon: typeof User; label: string; active: boolean }) {
   return (
-    <button type="button" onClick={onClick} className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left ${active ? 'bg-white font-semibold shadow-sm' : 'text-muted-foreground hover:bg-white/70'}`}>
+    <Link to={to} className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left ${active ? 'bg-white font-semibold shadow-sm' : 'text-muted-foreground hover:bg-white/70'}`}>
       <Icon size={20} />
       {label}
-    </button>
+    </Link>
   );
 }
 

@@ -66,7 +66,7 @@ export function UserPublicProfilePage() {
                 </div>
 
                 <Link
-                  to="/profile/settings"
+                  to="/settings/profile"
                   className="absolute right-5 top-5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
                 >
                   Edit profile

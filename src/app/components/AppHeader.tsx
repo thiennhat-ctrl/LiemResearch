@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { LayoutDashboard, LogOut, Plus, Search, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, Plus, Search, Settings, User } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { clearAuth, getStoredUser } from '../lib/api';
 
@@ -16,6 +16,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
   const actionPath = role === 'admin' ? '/admin/post-paper' : '/request-paper';
   const actionLabel = role === 'admin' ? 'Post Paper' : 'Request Paper';
   const profilePath = role === 'admin' ? '/admin/profile' : '/profile';
+  const settingsPath = role === 'admin' ? '/admin/profile' : '/settings/profile';
   const [query, setQuery] = useState('');
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
@@ -125,6 +126,14 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
                     >
                       <LayoutDashboard size={17} />
                       Dashboard
+                    </Link>
+                    <Link
+                      to={settingsPath}
+                      onClick={() => setIsAccountOpen(false)}
+                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1f1a17] transition-colors hover:bg-[#f3ebe1]"
+                    >
+                      <Settings size={17} />
+                      Settings
                     </Link>
                   </div>
 
