@@ -43,7 +43,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
   const navigationItems = menuItems.filter((item) => !item.isLogout);
 
   return (
-    <div className="sticky top-0 z-30 border-b border-[#dfd4c7] bg-[#fffaf4]/95 backdrop-blur">
+    <div className="hidden sticky top-0 z-30 border-b border-[#dfd4c7] bg-[#fffaf4]/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3">
         <Link
           to={logoPath}
