@@ -6,7 +6,7 @@ import { useToast } from '../components/ToastProvider';
 import { UNIVERSITY_LIST_VN } from '../lib/universities';
 
 export function RegisterPage() {
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({

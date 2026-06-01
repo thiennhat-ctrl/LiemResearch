@@ -7,7 +7,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ role = 'user' }: AppHeaderProps) {
   const workspacePath = role === 'admin' ? '/admin' : '/dashboard';
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
 
   return (
     <header className="hidden sticky top-0 z-20 border-b border-border/80 bg-background/90 backdrop-blur-xl">

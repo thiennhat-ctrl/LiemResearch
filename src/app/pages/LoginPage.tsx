@@ -6,7 +6,7 @@ import { useToast } from '../components/ToastProvider';
 
 export function LoginPage() {
   const { showToast } = useToast();
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');

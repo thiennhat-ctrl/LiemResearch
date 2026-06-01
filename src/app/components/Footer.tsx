@@ -1,5 +1,5 @@
 export function Footer() {
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
 
   return (
     <footer className="mt-6 bg-transparent text-muted-foreground">

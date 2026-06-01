@@ -8,7 +8,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ role = 'user' }: SidebarProps) {
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const navigate = useNavigate();
   const location = useLocation();
   const logoPath = role === 'admin' ? '/admin' : '/dashboard';
@@ -44,7 +44,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
 
   return (
     <div className="sticky top-0 z-30 border-b border-[#dfd4c7] bg-[#fffaf4]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <Link
           to={logoPath}
           onClick={() => window.scrollTo(0, 0)}
@@ -53,7 +53,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
           <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-[#e2d6c7] bg-white">
             <img src={logo} alt="LiemResearch" className="h-full w-full object-contain p-1.5" />
           </div>
-          <div className="min-w-0 leading-tight">
+          <div className="hidden min-w-0 leading-tight sm:block">
             <p className="truncate text-base text-[#1f1a17]">LiemResearch</p>
             <p className="truncate text-sm text-[#7d6d60]">
               {role === 'admin' ? 'Administration workspace' : 'Research workspace'}
@@ -61,8 +61,8 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
           </div>
         </Link>
 
-        <nav className="flex flex-1 justify-center px-2">
-          <div className="flex flex-wrap items-center justify-center gap-2">
+        <nav className="order-last w-full overflow-x-auto lg:order-none lg:flex-1 lg:px-2">
+          <div className="flex min-w-max items-center gap-2 lg:justify-center">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -88,7 +88,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
           </div>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <NotificationBell />
 
           {logoutItem ? (
@@ -97,7 +97,7 @@ export function Sidebar({ role = 'user' }: SidebarProps) {
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap text-red-600 transition-all hover:bg-red-50"
             >
               <logoutItem.icon size={18} className="flex-shrink-0" />
-              <span className="min-w-0">{logoutItem.label}</span>
+              <span className="hidden min-w-0 sm:inline">{logoutItem.label}</span>
             </button>
           ) : null}
         </div>

@@ -32,16 +32,16 @@ const sortCopy = {
   },
 } satisfies Record<SortOption, { title: string; description: string; icon: typeof BookOpen }>;
 
-const navigationItems = [
-  { label: 'EXPLORE', value: 'explore' },
-  { label: 'REQUEST', value: 'request' },
-  { label: 'RANKING', value: 'ranking' },
+const popularActions = [
+  { label: 'REQUEST', path: '/request-paper' },
+  { label: 'CONTRIBUTE PDF', path: '/request-paper?mode=contribute' },
+  { label: 'RANKING', path: '/rankings' },
 ];
 
 export function HomePage() {
   const navigate = useNavigate();
   const currentUser = getStoredUser();
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const [papers, setPapers] = useState<PublicPaper[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -127,7 +127,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-surface-feed text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3.5 lg:px-6">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-5 lg:px-6">
           <button
             type="button"
             onClick={() => navigate('/')}
@@ -137,32 +137,7 @@ export function HomePage() {
             <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
           </button>
 
-          <nav className="hidden items-center gap-6 lg:flex">
-            {navigationItems.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                onClick={() => {
-                  if (item.value === 'explore') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    return;
-                  }
-
-                  if (item.value === 'ranking') {
-                    navigate('/rankings');
-                    return;
-                  }
-
-                  navigate('/request-paper');
-                }}
-                className="text-[0.78rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="relative hidden flex-1 xl:block">
+          <div className="relative ml-3 hidden flex-1 md:block">
             <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
               type="text"
@@ -198,7 +173,7 @@ export function HomePage() {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="rounded-full border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  className="hidden rounded-full border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground sm:block"
                 >
                   Create Account
                 </button>
@@ -209,23 +184,23 @@ export function HomePage() {
       </header>
 
       <main>
-        <section className="mx-auto max-w-7xl px-4 pb-10 pt-12 lg:px-5 lg:pb-14 lg:pt-[4.5rem]">
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_320px] lg:items-start">
+        <section className="mx-auto max-w-7xl px-4 pb-8 pt-8 lg:px-5 lg:pb-10 lg:pt-10">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_300px] lg:items-start">
             <div>
               <span className="inline-flex items-center rounded-full border border-border/80 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
                 Community papers
               </span>
 
-              <h1 className="mt-5 max-w-4xl text-5xl font-semibold leading-[0.95] text-foreground md:text-6xl lg:text-7xl">
+              <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.02] text-foreground md:text-5xl lg:text-6xl">
                 Explore a community-built library of scientific papers.
               </h1>
 
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
+              <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
                 Search, request, and share research materials. Earn points for contributing as we build
                 an open knowledge library together.
               </p>
 
-              <div className="mt-7 flex flex-wrap gap-2.5">
+              <div className="mt-5 flex flex-wrap gap-2.5">
                 <button
                   type="button"
                   onClick={() => navigate(currentUser ? '/request-paper' : '/login')}
@@ -236,30 +211,19 @@ export function HomePage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate(currentUser ? '/request-paper' : '/login')}
+                  onClick={() => navigate(currentUser ? '/request-paper?mode=contribute' : '/login')}
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-white/60 px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
                 >
                   Contribute PDF
                 </button>
               </div>
 
-              <div className="mt-8 grid gap-2.5 sm:grid-cols-3">
-                {[
-                  'Search by title, DOI, keyword, or paper type.',
-                  'Rank results by community ratings and download volume.',
-                  'Share PDFs to support other research groups.',
-                ].map((copy) => (
-                  <div key={copy} className="rounded-2xl border border-border/80 bg-white/65 p-4 text-sm leading-6 text-muted-foreground shadow-sm">
-                    {copy}
-                  </div>
-                ))}
-              </div>
             </div>
 
-            <aside className="rounded-[2rem] border border-border/80 bg-white/75 p-4 shadow-[0_20px_60px_rgba(31,29,26,0.08)] backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Quick search</p>
+            <aside className="rounded-2xl border border-border/80 bg-white/75 p-4 shadow-sm backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Get started</p>
               <div className="mt-4 space-y-3.5">
-                <div className="relative xl:hidden">
+                <div className="relative md:hidden">
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                   <input
                     type="text"
@@ -277,18 +241,11 @@ export function HomePage() {
                 <div className="rounded-2xl border border-border/70 bg-background/70 p-3.5">
                   <p className="text-sm font-medium text-foreground">Popular actions</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {navigationItems.slice(1).map((item) => (
+                    {popularActions.map((item) => (
                       <button
-                        key={item.value}
+                        key={item.path}
                         type="button"
-                        onClick={() => {
-                          if (item.value === 'ranking') {
-                            navigate('/rankings');
-                            return;
-                          }
-
-                          navigate('/request-paper');
-                        }}
+                        onClick={() => navigate(item.path)}
                         className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
                         {item.label}
@@ -476,9 +433,9 @@ export function HomePage() {
                 <div className="rounded-[1.75rem] border border-border/80 bg-white/85 p-4 text-foreground shadow-sm backdrop-blur">
                   <h3 className="mb-2 text-foreground">Join LiemResearch</h3>
                   <p className="mb-3 text-sm text-muted-foreground">
-                    Sign in to request papers, download PDFs, rate research, and track your contribution points.
+                    Request papers, download PDFs, and earn contribution points.
                   </p>
-                  <div className="flex flex-col gap-1.5">
+                  <div>
                     <button
                       type="button"
                       onClick={() => navigate('/register')}
@@ -489,9 +446,9 @@ export function HomePage() {
                     <button
                       type="button"
                       onClick={() => navigate('/login')}
-                      className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                      className="mt-3 block text-sm font-semibold text-primary underline decoration-primary/30 underline-offset-4 transition-opacity hover:opacity-75"
                     >
-                      Sign in
+                      Already have an account? Sign in
                     </button>
                   </div>
                 </div>
