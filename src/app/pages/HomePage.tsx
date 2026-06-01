@@ -35,7 +35,6 @@ const navigationItems = [
   { label: 'EXPLORE', value: 'explore' },
   { label: 'REQUEST', value: 'request' },
   { label: 'RANKING', value: 'ranking' },
-  { label: 'CONTRIBUTE', value: 'contribute' },
 ];
 
 export function HomePage() {
@@ -116,17 +115,17 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-surface-feed text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3.5 lg:px-6">
           <button
             type="button"
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-left transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-10 w-auto" />
-            <span className="text-lg font-semibold tracking-tight text-foreground">LiemResearch</span>
+            <img src={logo} alt="LiemResearch" className="h-9 w-auto lg:h-10" />
+            <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
           </button>
 
-          <nav className="hidden items-center gap-8 lg:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
             {navigationItems.map((item) => (
               <button
                 key={item.value}
@@ -144,7 +143,7 @@ export function HomePage() {
 
                   navigate('/request-paper');
                 }}
-                className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:text-foreground"
+                className="text-[0.78rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:text-foreground"
               >
                 {item.label}
               </button>
@@ -198,7 +197,7 @@ export function HomePage() {
       </header>
 
       <main>
-        <section className="mx-auto max-w-7xl px-6 pb-12 pt-14 lg:pb-16 lg:pt-20">
+        <section className="mx-auto max-w-7xl px-5 pb-12 pt-14 lg:px-6 lg:pb-16 lg:pt-20">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_360px] lg:items-start">
             <div>
               <span className="inline-flex items-center rounded-full border border-border/80 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">

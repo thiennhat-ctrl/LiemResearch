@@ -11,15 +11,15 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-3.5 lg:px-6">
         <Link
           to={workspacePath}
           onClick={() => window.scrollTo(0, 0)}
           className="flex items-center gap-3 transition-opacity hover:opacity-80"
         >
-          <img src={logo} alt="LiemResearch" className="h-10 w-auto" />
+          <img src={logo} alt="LiemResearch" className="h-9 w-auto lg:h-10" />
           <div className="hidden sm:block">
-            <p className="text-lg font-semibold text-foreground">LiemResearch</p>
+            <p className="text-base font-semibold text-foreground lg:text-lg">LiemResearch</p>
             <p className="text-sm text-muted-foreground">
               {role === 'admin' ? 'Administration workspace' : 'Research workspace'}
             </p>
