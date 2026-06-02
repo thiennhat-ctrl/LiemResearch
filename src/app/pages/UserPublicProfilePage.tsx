@@ -1,14 +1,33 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { CalendarDays, FileText, MessageCircle, Tags } from 'lucide-react';
+import {
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  CreditCard,
+  Edit,
+  FileText,
+  Lock,
+  ShieldCheck,
+  Upload,
+} from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { LoadingSkeleton } from '../components/LoadingSpinner';
 import { apiRequest, AuthUser, getStoredUser } from '../lib/api';
 import { formatDisplayDate } from '../lib/date';
+import { calculateCurrentRank } from '../lib/userRanking';
+import { getRankImage } from '../lib/rankVisuals';
 
 type PaperRequest = {
   _id: string;
   status: string;
+  pdfPath?: string;
+};
+
+type UserRanking = {
+  rank: number;
+  points: number;
+  uploadedPapers: number;
 };
 
 function getInitials(name: string) {
@@ -22,7 +41,8 @@ function getInitials(name: string) {
 
 export function UserPublicProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser());
-  const [paperCount, setPaperCount] = useState(0);
+  const [papers, setPapers] = useState<PaperRequest[]>([]);
+  const [ranking, setRanking] = useState<UserRanking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,11 +51,13 @@ export function UserPublicProfilePage() {
     Promise.all([
       apiRequest<{ user: AuthUser }>('/auth/me', { auth: true }),
       apiRequest<{ papers: PaperRequest[] }>('/papers/my-requests', { auth: true }).catch(() => ({ papers: [] })),
+      apiRequest<{ ranking: UserRanking }>('/rankings/me', { auth: true }).catch(() => ({ ranking: null })),
     ])
-      .then(([profileData, paperData]) => {
+      .then(([profileData, paperData, rankingData]) => {
         if (!isMounted) return;
         setUser(profileData.user);
-        setPaperCount(paperData.papers.length);
+        setPapers(paperData.papers);
+        setRanking(rankingData.ranking);
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
@@ -47,6 +69,11 @@ export function UserPublicProfilePage() {
   }, []);
 
   const initials = getInitials(user?.fullName || '') || 'U';
+  const approvedCount = papers.filter((paper) =>
+    ['approved', 'downloaded', 'not-downloaded', 'pending-requester-acceptance'].includes(paper.status)
+  ).length;
+  const pdfCount = papers.filter((paper) => paper.status === 'downloaded' && Boolean(paper.pdfPath)).length;
+  const academicRank = calculateCurrentRank(ranking?.points ?? 0, ranking?.uploadedPapers ?? 0);
 
   return (
     <div className="min-h-screen bg-[#f5f3f0]">
@@ -60,31 +87,81 @@ export function UserPublicProfilePage() {
             <LoadingSkeleton variant="profile" />
           ) : (
             <>
-              <section className="relative rounded-lg border border-border bg-white px-6 pb-8 pt-24 text-center shadow-sm md:px-10">
-                <div className="absolute left-1/2 top-0 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-8 border-[#211b18] bg-[#6f5438] text-5xl font-semibold text-white">
+              <section className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+                <div className="h-28 bg-slate-800" />
+                <div className="px-6 pb-8 md:px-8">
+                  <div className="-mt-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                      <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg border-4 border-white bg-[#211b18] text-4xl font-semibold text-white shadow-sm">
                   {initials}
+                      </div>
+                      <div className="pb-1">
+                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
+                            <CreditCard size={15} />
+                            {user?.credits ?? 0} credits
+                          </span>
+                          <span className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+                            Member account
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">
+                            <Lock size={14} />
+                            Secure profile
+                          </span>
+                          <span className="inline-flex items-center gap-2 rounded-md border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-medium text-violet-700">
+                            <img src={getRankImage(academicRank.level)} alt="" className="h-5 w-5 object-contain" />
+                            Lv. {academicRank.level} · {academicRank.name}
+                          </span>
+                        </div>
+                        <h1 className="text-3xl font-semibold text-foreground">{user?.fullName || 'LiemResearch user'}</h1>
+                        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-2">
+                            <Building2 size={16} />
+                            {user?.university || 'Research community member'}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <CalendarDays size={16} />
+                            Joined {formatDisplayDate(user?.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Link
+                      to="/settings/profile"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
+                    >
+                      <Edit size={18} />
+                      Edit profile
+                    </Link>
+                  </div>
+
+                  <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+                    <ProfileMetric icon={FileText} label="Papers" value={papers.length} />
+                    <ProfileMetric icon={CheckCircle2} label="Approved" value={approvedCount} />
+                    <ProfileMetric icon={Upload} label="PDFs" value={pdfCount} />
+                    <ProfileMetric icon={CreditCard} label="Credits" value={user?.credits ?? 0} />
+                  </div>
                 </div>
-
-                <Link
-                  to="/settings/profile"
-                  className="absolute right-5 top-5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
-                >
-                  Edit profile
-                </Link>
-
-                <h1 className="text-3xl font-semibold text-foreground">{user?.fullName || 'LiemResearch user'}</h1>
-                <p className="mt-3 text-muted-foreground">{user?.university || 'Research community member'}</p>
-                <p className="mt-7 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <CalendarDays size={18} />
-                  Joined on {formatDisplayDate(user?.createdAt)}
-                </p>
               </section>
 
               <div className="mt-5 grid gap-5 md:grid-cols-[280px_minmax(0,1fr)]">
                 <section className="rounded-lg border border-border bg-white p-5 shadow-sm">
-                  <ProfileStat icon={FileText} label={`${paperCount} papers contributed`} />
-                  <ProfileStat icon={MessageCircle} label="0 comments written" />
-                  <ProfileStat icon={Tags} label="0 research tags followed" />
+                  <h2 className="mb-3 text-lg font-semibold text-foreground">Badges</h2>
+                  <ProfileBadge icon={ShieldCheck} label="Community member" tone="blue" />
+                  <ProfileBadge icon={Lock} label="Secure profile" tone="amber" />
+                  <ProfileBadge icon={FileText} label="Paper contributor" active={papers.length > 0} tone="green" />
+                  <ProfileBadge icon={Upload} label="PDF contributor" active={pdfCount > 0} tone="violet" />
+                  <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50 p-3 text-violet-700">
+                    <div className="flex items-center gap-3">
+                      <img src={getRankImage(academicRank.level)} alt={academicRank.name} className="h-12 w-12 object-contain" />
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide">Academic rank</p>
+                        <p className="font-semibold">Lv. {academicRank.level} · {academicRank.name}</p>
+                        <p className="mt-0.5 text-xs">{ranking ? `Leaderboard #${ranking.rank} · ${ranking.points} points` : '0 points'}</p>
+                      </div>
+                    </div>
+                  </div>
                 </section>
 
                 <section className="rounded-lg border border-border bg-white shadow-sm">
@@ -104,11 +181,40 @@ export function UserPublicProfilePage() {
   );
 }
 
-function ProfileStat({ icon: Icon, label }: { icon: typeof FileText; label: string }) {
+function ProfileMetric({ icon: Icon, label, value }: { icon: typeof FileText; label: string; value: number }) {
   return (
-    <p className="flex items-center gap-3 py-2 text-muted-foreground">
-      <Icon size={20} className="shrink-0" />
+    <div className="rounded-lg border border-border bg-white p-4">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <Icon size={18} className="text-primary" />
+      </div>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+const badgeTones = {
+  blue: 'border-blue-200 bg-blue-50 text-blue-700',
+  amber: 'border-amber-200 bg-amber-50 text-amber-700',
+  green: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  violet: 'border-violet-200 bg-violet-50 text-violet-700',
+};
+
+function ProfileBadge({
+  icon: Icon,
+  label,
+  tone,
+  active = true,
+}: {
+  icon: typeof FileText;
+  label: string;
+  tone: keyof typeof badgeTones;
+  active?: boolean;
+}) {
+  return (
+    <div className={`mb-2.5 flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium ${active ? badgeTones[tone] : 'border-border bg-muted text-muted-foreground opacity-55'}`}>
+      <Icon size={17} />
       {label}
-    </p>
+    </div>
   );
 }

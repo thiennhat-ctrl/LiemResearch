@@ -1,8 +1,10 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { LayoutDashboard, LogOut, Plus, Search, Settings, User } from 'lucide-react';
+import { CreditCard, LayoutDashboard, LogOut, Plus, Search, Settings, User } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
-import { clearAuth, getStoredUser } from '../lib/api';
+import { apiRequest, clearAuth, getStoredUser } from '../lib/api';
+import { calculateCurrentRank } from '../lib/userRanking';
+import { getRankImage } from '../lib/rankVisuals';
 
 interface AppHeaderProps {
   role?: 'user' | 'admin';
@@ -19,7 +21,12 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
   const settingsPath = role === 'admin' ? '/admin/profile' : '/settings/profile';
   const [query, setQuery] = useState('');
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [ranking, setRanking] = useState<{ points: number; uploadedPapers: number } | null>(null);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
+  const academicRank = useMemo(
+    () => (ranking ? calculateCurrentRank(ranking.points, ranking.uploadedPapers) : null),
+    [ranking]
+  );
 
   const handleSearch = (event: FormEvent) => {
     event.preventDefault();
@@ -52,6 +59,14 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  useEffect(() => {
+    if (role !== 'user') return;
+
+    apiRequest<{ ranking: { points: number; uploadedPapers: number } }>('/rankings/me', { auth: true })
+      .then((data) => setRanking(data.ranking))
+      .catch(() => setRanking(null));
+  }, [role]);
 
   const handleLogout = () => {
     clearAuth();
@@ -108,6 +123,16 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
                   <div className="border-b border-[#eadfce] px-3 py-2.5">
                     <p className="font-semibold text-[#1f1a17]">{user?.fullName || 'LiemResearch user'}</p>
                     <p className="mt-0.5 truncate text-xs text-[#7d6d60]">{user?.email}</p>
+                    <span className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                      <CreditCard size={14} />
+                      {user?.credits ?? 0} credits
+                    </span>
+                    {academicRank && (
+                      <span className="ml-1.5 mt-2 inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-700">
+                        <img src={getRankImage(academicRank.level)} alt="" className="h-4 w-4 object-contain" />
+                        Lv. {academicRank.level} · {academicRank.name}
+                      </span>
+                    )}
                   </div>
 
                   <div className="py-2">
