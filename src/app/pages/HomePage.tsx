@@ -136,11 +136,28 @@ export function HomePage() {
         </section>
 
         <section className="overflow-hidden border-b border-[#e5e0d8] bg-white">
-          <div className="flex min-w-max animate-[pulse_8s_ease-in-out_infinite] items-center gap-8 px-5 py-3">
-            {[...topics, ...topics].map((topic, index) => (
-              <span key={`${topic}-${index}`} className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#9a9086]">
-                {topic}
-              </span>
+          <div className="topic-marquee flex min-w-max py-4">
+            {[0, 1].map((groupIndex) => (
+              <div
+                key={groupIndex}
+                aria-hidden={groupIndex === 1}
+                className="flex shrink-0 items-center gap-7 pr-7"
+              >
+                {topics.map((topic, index) => (
+                  <span key={topic} className="flex shrink-0 items-center gap-7">
+                    <span
+                      className={`text-xs uppercase tracking-[0.12em] ${
+                        index % 3 === 1
+                          ? 'font-serif text-sm font-normal italic text-[#aaa29a]'
+                          : 'font-bold text-[#37322e]'
+                      }`}
+                    >
+                      {topic}
+                    </span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#b8afa6]" />
+                  </span>
+                ))}
+              </div>
             ))}
           </div>
         </section>

@@ -3,7 +3,6 @@ import { getStoredUser } from '../lib/api';
 
 const navigationItems = [
   { label: 'Khám phá', path: '/explore' },
-  { label: 'Yêu cầu', path: '/request-paper', requiresAuth: true },
   { label: 'Xếp hạng', path: '/rankings' },
   { label: 'Đóng góp', path: '/request-paper?mode=contribute', requiresAuth: true },
 ];
