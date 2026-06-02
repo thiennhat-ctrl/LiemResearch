@@ -107,6 +107,10 @@ function removeCommentFromTree(comments: PaperComment[], commentId: string) {
     }));
 }
 
+function isPaperReviewable(paper: DetailPaper) {
+  return ['approved', 'downloaded', 'not-downloaded'].includes(paper.status);
+}
+
 export function PaperDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -151,10 +155,12 @@ export function PaperDetailPage() {
         paperData = await apiRequest<{ paper: DetailPaper }>(`/public-papers/${id}`, { auth: true });
       }
 
-      const [ratingsData, commentsData] = await Promise.all([
-        apiRequest<{ ratings: Rating[] }>(`/ratings/papers/${id}`, { auth: true }),
-        apiRequest<{ comments: PaperComment[] }>(`/ratings/papers/${id}/comments`, { auth: true }),
-      ]);
+      const [ratingsData, commentsData] = isPaperReviewable(paperData.paper)
+        ? await Promise.all([
+            apiRequest<{ ratings: Rating[] }>(`/ratings/papers/${id}`, { auth: true }),
+            apiRequest<{ comments: PaperComment[] }>(`/ratings/papers/${id}/comments`, { auth: true }),
+          ])
+        : [{ ratings: [] }, { comments: [] }];
       const existingUserRating = ratingsData.ratings.find((rating) => rating.user?._id === currentUser?._id);
 
       setPaper(paperData.paper);
@@ -730,7 +736,7 @@ export function PaperDetailPage() {
                 )}
               </div>
 
-              {currentUser && (
+              {currentUser && isPaperReviewable(paper) && (
                 <div className="bg-white rounded-lg border border-border shadow-sm p-8">
                   <h3 className="text-foreground mb-4">Rate this paper</h3>
 

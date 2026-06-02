@@ -12,8 +12,18 @@ import {
   notifyPaperContributorsCommented,
 } from '../utils/notification.js';
 
+const reviewablePaperStatuses = ['approved', 'downloaded', 'not-downloaded'];
+
 function isInvalidId(id) {
   return !mongoose.Types.ObjectId.isValid(id);
+}
+
+function isReviewablePaper(paper) {
+  return Boolean(paper && reviewablePaperStatuses.includes(paper.status));
+}
+
+function sendPaperNotReviewable(res) {
+  return res.status(404).json({ message: 'Paper is not available for ratings and comments' });
 }
 
 function normalizeRating(value) {
@@ -141,6 +151,9 @@ export async function createRating(req, res) {
   if (!paper) {
     return res.status(404).json({ message: 'Paper not found' });
   }
+  if (!isReviewablePaper(paper)) {
+    return sendPaperNotReviewable(res);
+  }
 
   if (normalizedComment.length > 500) {
     return res.status(400).json({ message: 'Comment must be 500 characters or fewer' });
@@ -203,6 +216,14 @@ export async function getPaperRatings(req, res) {
     return res.status(400).json({ message: 'Invalid paper id' });
   }
 
+  const paper = await Paper.findById(paperId).select('status');
+  if (!paper) {
+    return res.status(404).json({ message: 'Paper not found' });
+  }
+  if (!isReviewablePaper(paper)) {
+    return sendPaperNotReviewable(res);
+  }
+
   const ratings = await Rating.find({ paper: paperId })
     .populate('user', 'fullName university role')
     .sort({ createdAt: -1 });
@@ -217,10 +238,13 @@ export async function getRatingById(req, res) {
 
   const rating = await Rating.findById(req.params.id)
     .populate('user', 'fullName university role')
-    .populate('paper', 'title doi');
+    .populate('paper', 'title doi status');
 
   if (!rating) {
     return res.status(404).json({ message: 'Rating not found' });
+  }
+  if (!isReviewablePaper(rating.paper)) {
+    return sendPaperNotReviewable(res);
   }
 
   res.json({ rating });
@@ -236,6 +260,11 @@ export async function updateRating(req, res) {
   const existingRating = await Rating.findById(req.params.id);
   if (!existingRating) {
     return res.status(404).json({ message: 'Rating not found' });
+  }
+
+  const paper = await Paper.findById(existingRating.paper).select('status');
+  if (!isReviewablePaper(paper)) {
+    return sendPaperNotReviewable(res);
   }
 
   if (existingRating.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
@@ -280,6 +309,14 @@ export async function getPaperComments(req, res) {
     return res.status(400).json({ message: 'Invalid paper id' });
   }
 
+  const paper = await Paper.findById(paperId).select('status');
+  if (!paper) {
+    return res.status(404).json({ message: 'Paper not found' });
+  }
+  if (!isReviewablePaper(paper)) {
+    return sendPaperNotReviewable(res);
+  }
+
   await migrateLegacyRatingComments(paperId);
 
   const comments = await PaperComment.find({ paper: paperId })
@@ -310,9 +347,12 @@ export async function createPaperComment(req, res) {
     return res.status(400).json({ message: 'Comment must be 500 characters or fewer' });
   }
 
-  const paper = await Paper.findById(paperId).select('title requestedBy uploadedBy');
+  const paper = await Paper.findById(paperId).select('title requestedBy uploadedBy status');
   if (!paper) {
     return res.status(404).json({ message: 'Paper not found' });
+  }
+  if (!isReviewablePaper(paper)) {
+    return sendPaperNotReviewable(res);
   }
 
   let parentComment = null;
@@ -369,6 +409,11 @@ export async function togglePaperCommentLike(req, res) {
     return res.status(404).json({ message: 'Comment not found' });
   }
 
+  const paper = await Paper.findById(comment.paper).select('title status');
+  if (!isReviewablePaper(paper)) {
+    return sendPaperNotReviewable(res);
+  }
+
   const userId = req.user._id.toString();
   const likedBy = comment.likedBy.map((likedUserId) => likedUserId.toString());
   let wasLiked = false;
@@ -384,7 +429,6 @@ export async function togglePaperCommentLike(req, res) {
 
   if (wasLiked) {
     try {
-      const paper = await Paper.findById(comment.paper).select('title');
       await notifyPaperCommentLiked({
         paperId: comment.paper,
         paperTitle: paper?.title || 'Unknown paper',
