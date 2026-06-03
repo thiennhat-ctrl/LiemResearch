@@ -6,6 +6,8 @@ import { AppHeader } from '../components/AppHeader';
 import { apiRequest } from '../lib/api';
 import { PAPER_TYPES, RELATED_SEMESTERS, APPLICATION_DOMAINS } from '../lib/papers';
 
+const MAX_PDF_SIZE = 50 * 1024 * 1024;
+
 type RequestPaperPageProps = {
   role?: 'user' | 'admin';
 };
@@ -33,6 +35,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -77,10 +80,49 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFile(e.target.files?.[0] || null);
+  const setPdfFile = (file?: File) => {
     setError('');
     setMessage('');
+
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      setSelectedFile(null);
+      setError('Please choose a PDF file.');
+      return;
+    }
+
+    if (file.size > MAX_PDF_SIZE) {
+      setSelectedFile(null);
+      setError('PDF file must be 50MB or smaller.');
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPdfFile(e.target.files?.[0]);
+  };
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDraggingFile(false);
+    setPdfFile(event.dataTransfer.files?.[0]);
+  };
+
+  const handleFileDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDraggingFile(true);
+  };
+
+  const handleFileDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsDraggingFile(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -417,22 +459,51 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   onChange={handleFileChange}
                   className="sr-only"
                 />
-                <div className="flex items-center gap-3 rounded-lg border border-border bg-input-background px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={handleChooseFile}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-blue-600"
-                  >
-                    Choose file
-                  </button>
-                  <span className="text-sm text-muted-foreground">
-                    {selectedFile ? selectedFile.name : 'No file chosen'}
-                  </span>
+                <div
+                  onDrop={handleFileDrop}
+                  onDragOver={handleFileDragOver}
+                  onDragLeave={handleFileDragLeave}
+                  className={`rounded-lg border border-dashed px-4 py-5 transition-colors ${
+                    isDraggingFile
+                      ? 'border-primary bg-blue-50'
+                      : 'border-border bg-input-background hover:border-primary hover:bg-accent/40'
+                  }`}
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {selectedFile ? selectedFile.name : 'Drag and drop a PDF here'}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {selectedFile ? 'Drop another PDF to replace this file.' : 'Or choose a file from your computer.'}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {selectedFile && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white"
+                        >
+                          Remove
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleChooseFile}
+                        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-blue-600"
+                      >
+                        Choose file
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <p className="text-muted-foreground mt-2">
                   {isContribution ? 'Required for contributions.' : 'Optional. Upload a PDF now if you already have one.'} Only PDF files up to 50MB are accepted.
                 </p>
-                {selectedFile && <p className="text-foreground mt-2">Selected file: {selectedFile.name}</p>}
               </div>
 
               <div className="flex gap-4 pt-4">
