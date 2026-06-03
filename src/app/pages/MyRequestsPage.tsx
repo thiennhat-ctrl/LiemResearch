@@ -21,6 +21,7 @@ interface PaperRequest {
   keywords: string[];
   publishedYear: number;
   status: PaperStatus;
+  rejectionReason?: string;
   createdAt: string;
   pdfPath?: string;
 }
@@ -262,6 +263,12 @@ export function MyRequestsPage() {
                         )}
                       </div>
                       <p className="text-muted-foreground">DOI: {request.doi}</p>
+                      {request.status === 'rejected' && (
+                        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+                          <p className="font-medium">Rejection reason</p>
+                          <p className="mt-1 text-sm">{request.rejectionReason || 'No reason was provided.'}</p>
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-col items-end gap-3 ml-4">
                       <StatusBadge status={request.status} />

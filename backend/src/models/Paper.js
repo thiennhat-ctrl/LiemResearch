@@ -61,6 +61,7 @@ const paperSchema = new mongoose.Schema(
       enum: ['pending', 'approved', 'rejected', 'downloaded', 'not-downloaded', 'pending-requester-acceptance'],
       default: 'pending',
     },
+    rejectionReason: { type: String, trim: true, maxlength: 500 },
     requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     pdfPath: { type: String },
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -125,6 +125,20 @@ function normalizePaperUpdateStatus(status, paper) {
   return status === 'approved' ? getApprovalStatus(paper) : normalizePaperStatus(status);
 }
 
+function validateRejectionReason(value) {
+  const reason = String(value || '').trim().replace(/\s+/g, ' ');
+
+  if (reason.length < 5) {
+    return { error: 'Rejection reason must be at least 5 characters' };
+  }
+
+  if (reason.length > 500) {
+    return { error: 'Rejection reason must be 500 characters or fewer' };
+  }
+
+  return { reason };
+}
+
 function shouldNotifyApproval(previousStatus, nextStatus) {
   return !isApprovedStatus(previousStatus) && isApprovedStatus(nextStatus);
 }
@@ -528,7 +542,7 @@ export async function getPaperPdfDownloadUrl(req, res) {
 }
 
 export async function updatePaperStatus(req, res) {
-  const { status } = req.body;
+  const { status, rejectionReason } = req.body;
 
   if (isInvalidPaperId(req.params.id)) {
     return res.status(400).json({ message: 'Invalid paper id' });
@@ -545,9 +559,20 @@ export async function updatePaperStatus(req, res) {
   const previousStatus = currentPaper.status;
   const nextStatus = normalizePaperUpdateStatus(status, currentPaper);
   const notifyApproval = shouldNotifyApproval(previousStatus, nextStatus);
+  const statusUpdates = { status: nextStatus };
+
+  if (nextStatus === 'rejected') {
+    const reasonValidation = validateRejectionReason(rejectionReason);
+    if (reasonValidation.error) {
+      return res.status(400).json({ message: reasonValidation.error });
+    }
+    statusUpdates.rejectionReason = reasonValidation.reason;
+  } else {
+    statusUpdates.$unset = { rejectionReason: '' };
+  }
 
   const qualityUpdates = calculatePaperQuality(currentPaper);
-  const paper = await Paper.findByIdAndUpdate(req.params.id, { status: nextStatus, ...qualityUpdates }, { new: true });
+  const paper = await Paper.findByIdAndUpdate(req.params.id, { ...statusUpdates, ...qualityUpdates }, { new: true });
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
   await applyUploadCreditReward(paper);
@@ -593,6 +618,7 @@ export async function updatePaper(req, res) {
     'relatedSemesters',
     'applicationDomain',
     'status',
+    'rejectionReason',
   ];
   const updates = {};
 
@@ -664,6 +690,17 @@ export async function updatePaper(req, res) {
 
   if (updates.status !== undefined) {
     updates.status = normalizePaperUpdateStatus(updates.status, existingPaper);
+  }
+
+  if (updates.status === 'rejected') {
+    const reasonValidation = validateRejectionReason(updates.rejectionReason || existingPaper.rejectionReason);
+    if (reasonValidation.error) {
+      return res.status(400).json({ message: reasonValidation.error });
+    }
+    updates.rejectionReason = reasonValidation.reason;
+  } else if (updates.status !== undefined) {
+    updates.$unset = { ...(updates.$unset || {}), rejectionReason: '' };
+    delete updates.rejectionReason;
   }
 
   if (updates.title || updates.doi || updates.paperLink) {

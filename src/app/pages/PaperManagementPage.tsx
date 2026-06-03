@@ -47,6 +47,9 @@ export function PaperManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [paperToDelete, setPaperToDelete] = useState<AdminPaper | null>(null);
   const [isDeletingPaper, setIsDeletingPaper] = useState(false);
+  const [paperToReject, setPaperToReject] = useState<AdminPaper | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [isRejectingPaper, setIsRejectingPaper] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [showUserModal, setShowUserModal] = useState(false);
@@ -160,7 +163,7 @@ export function PaperManagementPage() {
     b.localeCompare(a)
   );
 
-  const updatePaperStatus = async (paperId: string, status: PaperStatus) => {
+  const updatePaperStatus = async (paperId: string, status: PaperStatus, reason?: string) => {
     setError('');
     setMessage('');
 
@@ -168,13 +171,32 @@ export function PaperManagementPage() {
       const data = await apiRequest<{ paper: AdminPaper }>(`/papers/${paperId}/status`, {
         method: 'PATCH',
         auth: true,
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, rejectionReason: reason }),
       });
 
       setPapers(papers.map((paper) => (paper._id === paperId ? data.paper : paper)));
       setMessage('Paper status updated successfully.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update status');
+    }
+  };
+
+  const handleReject = async () => {
+    const reason = rejectionReason.trim();
+    if (!paperToReject) return;
+
+    if (reason.length < 5) {
+      setError('Please enter a rejection reason with at least 5 characters.');
+      return;
+    }
+
+    setIsRejectingPaper(true);
+    try {
+      await updatePaperStatus(paperToReject._id, 'rejected', reason);
+      setPaperToReject(null);
+      setRejectionReason('');
+    } finally {
+      setIsRejectingPaper(false);
     }
   };
 
@@ -288,6 +310,7 @@ export function PaperManagementPage() {
             relatedSemesters: editedPaper.relatedSemesters,
             applicationDomain: editedPaper.applicationDomain,
           status: editedPaper.status,
+          rejectionReason: editedPaper.rejectionReason,
         }),
       });
 
@@ -520,7 +543,10 @@ export function PaperManagementPage() {
                                 <Check size={18} className="text-green-600" />
                               </button>
                               <button
-                                onClick={() => updatePaperStatus(paper._id, 'rejected')}
+                                onClick={() => {
+                                  setPaperToReject(paper);
+                                  setRejectionReason(paper.rejectionReason || '');
+                                }}
                                 className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                                 title="Reject request"
                               >
@@ -605,6 +631,51 @@ export function PaperManagementPage() {
           onConfirm={handleDelete}
           onCancel={() => setPaperToDelete(null)}
         />
+        {paperToReject && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-lg rounded-lg border border-border bg-white shadow-xl">
+              <div className="border-b border-border p-5">
+                <h3 className="text-foreground">Reject paper request?</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add a reason so the requester knows what needs to be fixed.
+                </p>
+              </div>
+              <div className="p-5">
+                <p className="mb-3 font-medium text-foreground">{paperToReject.title}</p>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(event) => setRejectionReason(event.target.value)}
+                  rows={5}
+                  maxLength={500}
+                  className="w-full resize-none rounded-lg border border-border bg-input-background px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Enter rejection reason"
+                />
+                <p className="mt-2 text-sm text-muted-foreground">{rejectionReason.trim().length}/500 characters</p>
+              </div>
+              <div className="flex gap-3 border-t border-border p-5">
+                <button
+                  type="button"
+                  disabled={isRejectingPaper}
+                  onClick={() => {
+                    setPaperToReject(null);
+                    setRejectionReason('');
+                  }}
+                  className="flex-1 rounded-lg border border-border px-4 py-2 text-foreground transition-colors hover:bg-accent disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isRejectingPaper || rejectionReason.trim().length < 5}
+                  onClick={handleReject}
+                  className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isRejectingPaper ? 'Rejecting...' : 'Reject paper'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <ConfirmDialog
           isOpen={showConfirmToggle}
           title={selectedUserProfile?.status === 'banned' ? 'Unban user?' : 'Ban user?'}

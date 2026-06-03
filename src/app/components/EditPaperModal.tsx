@@ -15,6 +15,7 @@ export type EditablePaper = {
   applicationDomain?: string;
   publishedYear: number;
   status: 'pending' | 'downloaded' | 'not-downloaded' | 'approved' | 'rejected' | 'pending-requester-acceptance';
+  rejectionReason?: string;
 };
 
 interface EditPaperModalProps {
@@ -52,8 +53,14 @@ export function EditPaperModal({ isOpen, onClose, onSave, paper }: EditPaperModa
       return;
     }
 
+    if (editedPaper.status === 'rejected' && !editedPaper.rejectionReason?.trim()) {
+      setModalError('Please enter a rejection reason.');
+      return;
+    }
+
     onSave({
       ...editedPaper,
+      rejectionReason: editedPaper.rejectionReason?.trim(),
       authors,
       keywords: keywordsText.split(',').map((keyword) => keyword.trim()).filter(Boolean),
     });
@@ -235,6 +242,21 @@ export function EditPaperModal({ isOpen, onClose, onSave, paper }: EditPaperModa
               </select>
             </div>
           </div>
+
+          {editedPaper.status === 'rejected' && (
+            <div>
+              <label className="block text-foreground mb-2">Rejection Reason *</label>
+              <textarea
+                value={editedPaper.rejectionReason || ''}
+                onChange={(e) => setEditedPaper({ ...editedPaper, rejectionReason: e.target.value })}
+                rows={3}
+                maxLength={500}
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background resize-none"
+                placeholder="Explain why this paper request was rejected"
+              />
+              <p className="text-muted-foreground mt-2 text-sm">This reason will be shown to the requester.</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-foreground mb-2">Abstract *</label>
