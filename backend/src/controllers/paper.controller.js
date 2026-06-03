@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { Paper } from '../models/Paper.js';
 import { User } from '../models/User.js';
 import { deletePdfFromS3, getPdfDownloadUrl, isObjectStorageConfigured, isS3Path, uploadPdfToS3 } from '../utils/s3.js';
-import { chargePaperRequestCredit, recordInvalidPdfUpload, rewardPaperUploadCredit, syncUserPoints } from '../utils/points.js';
+import { chargePaperRequestCredit, recordInvalidPdfUpload, refundPaperRequestCredit, rewardPaperUploadCredit, syncUserPoints } from '../utils/points.js';
 import { calculatePaperQuality } from '../utils/paperQuality.js';
 import { deletePapersWithRelatedData } from '../utils/paperCleanup.js';
 import { escapeRegexSearch } from '../utils/search.js';
@@ -703,10 +703,45 @@ export async function deletePaper(req, res) {
 
   if (!paper) return res.status(404).json({ message: 'Paper not found' });
 
+  const isAdmin = req.user.role === 'admin';
+  const isOwner = isSameObjectId(paper.requestedBy, req.user._id);
+
+  if (!isAdmin && !isOwner) {
+    return res.status(403).json({ message: 'You can only delete your own paper requests' });
+  }
+
+  const shouldRefundRequestCredit = !isAdmin && isOwner && paper.status === 'pending';
   const affectedUserIds = await deletePapersWithRelatedData({ _id: paper._id });
+  if (shouldRefundRequestCredit) {
+    await refundPaperRequestCredit(req.user._id);
+  }
   await Promise.all(affectedUserIds.map((userId) => syncUserPoints(userId)));
 
   res.json({ message: 'Paper deleted successfully', paperId: paper._id });
+}
+
+export async function cancelMyPaperRequest(req, res) {
+  if (isInvalidPaperId(req.params.id)) {
+    return res.status(400).json({ message: 'Invalid paper id' });
+  }
+
+  const paper = await Paper.findById(req.params.id);
+
+  if (!paper) return res.status(404).json({ message: 'Paper not found' });
+
+  if (!isSameObjectId(paper.requestedBy, req.user._id)) {
+    return res.status(403).json({ message: 'You can only cancel your own paper requests' });
+  }
+
+  if (paper.status !== 'pending') {
+    return res.status(400).json({ message: 'Only pending paper requests can be cancelled' });
+  }
+
+  const affectedUserIds = await deletePapersWithRelatedData({ _id: paper._id });
+  await refundPaperRequestCredit(req.user._id);
+  await Promise.all(affectedUserIds.map((userId) => syncUserPoints(userId)));
+
+  res.json({ message: 'Paper request cancelled successfully', paperId: paper._id });
 }
 
 export async function uploadPaperPdf(req, res) {

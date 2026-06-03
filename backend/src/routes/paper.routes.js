@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createPaper,
   acceptPaperPdf,
+  cancelMyPaperRequest,
   deletePaper,
   getAllPapers,
   getMyPapers,
@@ -283,6 +284,8 @@ router.patch('/:id/accept-pdf', requireAuth, acceptPaperPdf);
 
 router.patch('/:id/reject-pdf', requireAuth, rejectPaperPdf);
 
+router.delete('/:id/cancel', requireAuth, cancelMyPaperRequest);
+
 /**
  * @swagger
  * /api/papers/{id}/pdf:
@@ -321,6 +324,6 @@ router.delete('/:id/pdf', requireAuth, requireRole('admin'), deletePaperPdf);
  *       200:
  *         description: Paper deleted
  */
-router.delete('/:id', requireAuth, requireRole('admin'), deletePaper);
+router.delete('/:id', requireAuth, deletePaper);
 
 export default router;

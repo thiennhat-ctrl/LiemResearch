@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router';
 import { Sidebar } from '../components/Sidebar';
 import { AppHeader } from '../components/AppHeader';
 import { StatusBadge } from '../components/StatusBadge';
-import { Search, Plus, Eye, Calendar, BookOpen, Download } from 'lucide-react';
-import { apiRequest, resolveFileUrl } from '../lib/api';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Search, Plus, Eye, Calendar, BookOpen, Download, Trash2, XCircle } from 'lucide-react';
+import { apiRequest, AuthUser, getToken, resolveFileUrl, saveAuth } from '../lib/api';
 import { formatDisplayDate } from '../lib/date';
 
 type PaperStatus = 'pending' | 'approved' | 'rejected' | 'downloaded' | 'not-downloaded' | 'pending-requester-acceptance';
@@ -44,7 +45,12 @@ export function MyRequestsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | PaperStatus>('all');
   const [requests, setRequests] = useState<PaperRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [requestToCancel, setRequestToCancel] = useState<PaperRequest | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [requestToDelete, setRequestToDelete] = useState<PaperRequest | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -94,6 +100,55 @@ export function MyRequestsPage() {
     return counts;
   }, {});
 
+  const cancelRequest = async () => {
+    if (!requestToCancel) return;
+
+    setIsCanceling(true);
+    setError('');
+    setMessage('');
+
+    try {
+      await apiRequest(`/papers/${requestToCancel._id}/cancel`, {
+        method: 'DELETE',
+        auth: true,
+      });
+      const token = getToken();
+      if (token) {
+        const { user } = await apiRequest<{ user: AuthUser }>('/auth/me', { auth: true });
+        saveAuth(token, user);
+      }
+      setRequests((items) => items.filter((item) => item._id !== requestToCancel._id));
+      setMessage('Paper request cancelled successfully. Your request credit has been refunded.');
+      setRequestToCancel(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to cancel paper request');
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
+  const deleteRequest = async () => {
+    if (!requestToDelete) return;
+
+    setIsDeleting(true);
+    setError('');
+    setMessage('');
+
+    try {
+      await apiRequest(`/papers/${requestToDelete._id}`, {
+        method: 'DELETE',
+        auth: true,
+      });
+      setRequests((items) => items.filter((item) => item._id !== requestToDelete._id));
+      setMessage('Paper request deleted successfully.');
+      setRequestToDelete(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to delete paper request');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-surface-workspace bg-fixed">
       <Sidebar role="user" />
@@ -119,6 +174,12 @@ export function MyRequestsPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6">
               {error}
+            </div>
+          )}
+
+          {message && (
+            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-6">
+              {message}
             </div>
           )}
 
@@ -211,6 +272,26 @@ export function MyRequestsPage() {
                         <Eye size={18} />
                         View Details
                       </button>
+                      {request.status === 'pending' && (
+                        <button
+                          type="button"
+                          onClick={() => setRequestToCancel(request)}
+                          className="px-4 py-2 border border-red-200 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <XCircle size={18} />
+                          Cancel Request
+                        </button>
+                      )}
+                      {request.status !== 'pending' && (
+                        <button
+                          type="button"
+                          onClick={() => setRequestToDelete(request)}
+                          className="px-4 py-2 border border-red-200 bg-white text-red-700 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <Trash2 size={18} />
+                          Delete
+                        </button>
+                      )}
                       {request.pdfPath && request.status === 'downloaded' ? (
                         <button
                           onClick={async () => {
@@ -272,6 +353,25 @@ export function MyRequestsPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={Boolean(requestToCancel)}
+        title="Cancel paper request?"
+        description={`This will remove "${requestToCancel?.title || 'this request'}" from your requests and refund the request credit.`}
+        confirmLabel="Cancel Request"
+        isLoading={isCanceling}
+        onConfirm={cancelRequest}
+        onCancel={() => setRequestToCancel(null)}
+      />
+      <ConfirmDialog
+        isOpen={Boolean(requestToDelete)}
+        title="Delete paper request?"
+        description={`This will permanently delete "${requestToDelete?.title || 'this request'}" from your requests.`}
+        confirmLabel="Delete"
+        isLoading={isDeleting}
+        onConfirm={deleteRequest}
+        onCancel={() => setRequestToDelete(null)}
+      />
     </div>
   );
 }

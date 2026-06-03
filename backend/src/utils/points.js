@@ -164,6 +164,10 @@ export async function chargePaperRequestCredit(userId) {
   await User.findByIdAndUpdate(userId, { $inc: { credits: -REQUEST_PAPER_COST } });
 }
 
+export async function refundPaperRequestCredit(userId) {
+  await User.findByIdAndUpdate(userId, { $inc: { credits: REQUEST_PAPER_COST } });
+}
+
 export async function rewardPaperUploadCredit(userId, reward) {
   if (!userId || !reward) return;
   await User.findByIdAndUpdate(userId, { $inc: { credits: reward } });
