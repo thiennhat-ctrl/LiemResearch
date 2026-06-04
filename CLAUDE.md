@@ -59,7 +59,7 @@ These are configured per developer in their own `.env`. The team lead (hoangtira
 | Upstash Redis | https://console.upstash.com | 10K commands/day |
 | Google AI Studio (Gemini) | https://aistudio.google.com | ~250 RPD on Flash, ~125 on Pro |
 | OpenAlex API | https://api.openalex.org | Unlimited with polite mailto |
-| GitHub | https://github.com/longdevlife/publication-trend-system | Private repo |
+| GitHub | https://github.com/longdevlife/LiemResearch | **PUBLIC fork** — never commit secrets; old repo `publication-trend-system` is frozen |
 
 **Each developer creates their own Gemini key** — sharing one hits rate limits faster.
 
@@ -70,14 +70,19 @@ These are configured per developer in their own `.env`. The team lead (hoangtira
 ## 4. Repository Layout
 
 ```
-WDP301/                                          (repo root)
+LiemResearch/                                    (repo root — fork of thiennhat-ctrl/LiemResearch)
 ├── apps/
 │   ├── backend/                                 Express 5 API + BullMQ workers
 │   ├── web/                                     React + Vite + shadcn web app
 │   └── mobile/                                  Expo + NativeWind mobile app
 ├── packages/
 │   └── shared-types/                            framework-agnostic TS types
+├── legacy/                                      original LiemResearch code — port reference
+│   ├── backend-js/                              ratings, points, notifications, S3 (JS)
+│   └── web-figma/                               17 UI pages + rank badges (Tailwind v4)
+│                                                → port per docs/MIGRATION_MAP.md, then delete
 ├── docs/
+│   ├── MIGRATION_MAP.md                         legacy → monorepo porting checklist
 │   └── superpowers/specs/                       design specs (per phase)
 ├── docker-compose.yml                           local Mongo + Redis (not used —
 │                                                Atlas + Upstash instead)

@@ -1,8 +1,23 @@
-# Publication Trend System
+# LiemResearch — Publication Trend System
 
 > **AI-assisted Scientific Publication Trend Analysis** — multi-source academic metadata aggregation + vector semantic search + LLM-grounded analytical reports + MCP tool calling, to help researchers discover trends, evaluate papers, and identify research gaps.
+>
+> WDP301 capstone @ FPT University.
 
 This repository is a **pnpm + Turborepo mono-repo** containing three runnable apps and one shared package.
+
+---
+
+## Project lineage
+
+This repo is a fork of [thiennhat-ctrl/LiemResearch](https://github.com/thiennhat-ctrl/LiemResearch) (a Research Paper Management System), merged with the team's production engine from `publication-trend-system`. Both git histories are preserved.
+
+| Came from | What |
+|---|---|
+| **publication-trend-system** (60 commits) | The entire monorepo: TypeScript backend (OpenAlex sync pipeline, Gemini embeddings, semantic search, BullMQ workers), web (shadcn/ui + TanStack Query), mobile (Expo), shared types |
+| **LiemResearch** (original) | Community features to be ported: ratings, points/credits, notifications, PDF requests, rank badges, 17 UI pages — preserved under [`legacy/`](legacy/) |
+
+`legacy/` is **reference material only** (it is not part of the pnpm workspace and is never built). Each feature gets ported into the monorepo following [docs/MIGRATION_MAP.md](docs/MIGRATION_MAP.md); once everything is ported, `legacy/` will be deleted.
 
 ---
 
@@ -16,6 +31,9 @@ This repository is a **pnpm + Turborepo mono-repo** containing three runnable ap
 │   └── mobile/               Expo SDK 52 · React Native · Expo Router · NativeWind · TanStack Query
 ├── packages/
 │   └── shared-types/         framework-agnostic TypeScript types shared by all three apps
+├── legacy/                   original LiemResearch code (port reference — see docs/MIGRATION_MAP.md)
+│   ├── backend-js/           JS backend: ratings, points, notifications, S3 PDF upload
+│   └── web-figma/            Figma-exported React UI: 17 pages + rank badge assets
 ├── docker-compose.yml        local MongoDB + Redis (+ optional mongo-express UI)
 ├── pnpm-workspace.yaml
 ├── turbo.json
