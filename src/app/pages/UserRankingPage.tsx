@@ -40,23 +40,26 @@ const pointRules: Array<{
   icon: typeof FileText;
   earn: string;
   lose: string;
+  earnDescription: string;
   description: string;
 }> = [
   {
     id: 'paper',
-    title: 'Request new paper',
+    title: 'Approved paper',
     icon: FileText,
-    earn: '-100 credits',
-    lose: 'Charged on submit',
-    description: 'New requests cost credits because the system or admin needs to process them.',
+    earn: '+1 approved paper',
+    lose: 'Rejected papers do not count',
+    earnDescription: 'Counts toward the paper requirement used for academic rank levels.',
+    description: 'Approved, not-downloaded, and downloaded papers are counted for rank level progress.',
   },
   {
     id: 'pdf',
     title: 'Accepted PDF upload',
     icon: Upload,
-    earn: '+100 to +300 credits',
-    lose: 'No rank drop on download',
-    description: 'Upload rewards depend on paper quality tier after the PDF is accepted.',
+    earn: '+100 to +300 score',
+    lose: 'Penalty points reduce score',
+    earnDescription: 'Added to ranking score when the accepted PDF reaches a valid quality tier.',
+    description: 'Rejected-paper penalties are currently set to 0, but manual penalty points still reduce ranking score.',
   },
   {
     id: 'rating',
@@ -64,6 +67,7 @@ const pointRules: Array<{
     icon: Star,
     earn: '+5 points',
     lose: 'No penalty',
+    earnDescription: 'Added once for each paper rating you create.',
     description: 'Every helpful rating contributes a small amount to the research community score.',
   },
 ];
@@ -309,7 +313,7 @@ export function UserRankingPage() {
                 <section className="rounded-lg border border-[#dfd4c7] bg-[#fffaf4] p-5 shadow-sm">
                   <div className="mb-4 flex items-center gap-2">
                     <ShieldCheck size={20} className="text-[#b88944]" />
-                    <h3 className="text-[#1f1a17]">Point Rules</h3>
+                    <h3 className="text-[#1f1a17]">Ranking Score Rule</h3>
                   </div>
 
                   <div className="space-y-3">
@@ -554,7 +558,7 @@ function RuleAccordion({
                 <PlusCircle size={18} />
                 <span className="font-semibold">{rule.earn}</span>
               </div>
-              <p className="text-sm text-[#5b7d57]">Earned when the contribution is accepted.</p>
+              <p className="text-sm text-[#5b7d57]">{rule.earnDescription}</p>
             </div>
 
             <div className="rounded-lg border border-[#efc8c8] bg-[#fff3f3] p-4">
