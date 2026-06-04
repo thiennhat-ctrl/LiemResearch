@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LogOut, User, Search, Bell, Sparkles } from "lucide-react";
 
@@ -26,11 +25,6 @@ const navItems = [
 
 export function MainLayout() {
   const navigate = useNavigate();
-  const [headerQ, setHeaderQ] = useState("");
-  const submitSearch = () => {
-    const term = headerQ.trim();
-    if (term) navigate(`/search?q=${encodeURIComponent(term)}`);
-  };
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-[#09090b]">
       <header className="border-b bg-white dark:bg-[#0f0f11] sticky top-0 z-50">
@@ -40,18 +34,23 @@ export function MainLayout() {
               Publication Trend
             </Link>
           </div>
-          
+
           <div className="flex-1 max-w-2xl hidden md:flex items-center mx-4">
-            <div className="relative w-full">
+            <form
+              className="relative w-full"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = new FormData(e.currentTarget).get("q")?.toString().trim();
+                if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
+              }}
+            >
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                value={headerQ}
-                onChange={(e) => setHeaderQ(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") submitSearch(); }}
+                name="q"
                 className="w-full pl-9 rounded-full bg-slate-100 dark:bg-zinc-900 border-none h-10 focus-visible:ring-1"
                 placeholder="Search papers, authors, topics..."
               />
-            </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-4">
