@@ -67,17 +67,21 @@ function buildSearchFilter(query, { includeYear = true } = {}) {
 
   if (query.search) {
     const search = escapeRegexSearch(query.search);
-    andConditions.push({
-      $or: [
-        { title: { $regex: search, $options: 'i' } },
-        { doi: { $regex: search, $options: 'i' } },
-        { paperType: { $regex: search, $options: 'i' } },
-        { paperLink: { $regex: search, $options: 'i' } },
-        { abstract: { $regex: search, $options: 'i' } },
-        { authors: { $regex: search, $options: 'i' } },
-        { keywords: { $regex: search, $options: 'i' } },
-      ],
-    });
+    if (search) {
+      andConditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { doi: { $regex: search, $options: 'i' } },
+          { paperType: { $regex: search, $options: 'i' } },
+          { paperLink: { $regex: search, $options: 'i' } },
+          { abstract: { $regex: search, $options: 'i' } },
+          { authors: { $regex: search, $options: 'i' } },
+          { keywords: { $regex: search, $options: 'i' } },
+        ],
+      });
+    } else {
+      andConditions.push({ _id: null });
+    }
   }
 
   if (includeYear && query.year && Number.isInteger(Number(query.year))) {
@@ -96,7 +100,10 @@ function buildSearchFilter(query, { includeYear = true } = {}) {
   }
 
   if (query.applicationDomain) {
-    andConditions.push({ applicationDomain: { $regex: escapeRegexSearch(query.applicationDomain), $options: 'i' } });
+    const applicationDomain = escapeRegexSearch(query.applicationDomain);
+    if (applicationDomain) {
+      andConditions.push({ applicationDomain: { $regex: applicationDomain, $options: 'i' } });
+    }
   }
 
   if (query.hasPdf === 'true') {

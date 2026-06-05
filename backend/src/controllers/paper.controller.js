@@ -68,6 +68,7 @@ const allowedSemesters = [
 ];
 
 const allowedStatuses = ['pending', 'approved', 'rejected', 'downloaded', 'not-downloaded', 'pending-requester-acceptance'];
+const MAX_PAPER_TITLE_LENGTH = 255;
 
 function normalizePaperStatus(status) {
   return status === 'approved' ? 'not-downloaded' : status;
@@ -209,6 +210,10 @@ function validatePaperRequest({ title, doi, paperType, paperLink, abstract, keyw
 
   if (trimmedTitle.length < 8 || !hasEnoughWords(trimmedTitle, 3)) {
     return 'Please enter a clearer paper title';
+  }
+
+  if (trimmedTitle.length > MAX_PAPER_TITLE_LENGTH) {
+    return `Paper title must be ${MAX_PAPER_TITLE_LENGTH} characters or fewer`;
   }
 
   if (titleWordCount > 200) {
@@ -484,12 +489,16 @@ export async function getAllPapers(req, res) {
   if (status) filter.status = status;
   if (search) {
     const escapedSearch = escapeRegexSearch(search);
-    filter.$or = [
-      { title: { $regex: escapedSearch, $options: 'i' } },
-      { doi: { $regex: escapedSearch, $options: 'i' } },
-      { paperType: { $regex: escapedSearch, $options: 'i' } },
-      { paperLink: { $regex: escapedSearch, $options: 'i' } },
-    ];
+    if (escapedSearch) {
+      filter.$or = [
+        { title: { $regex: escapedSearch, $options: 'i' } },
+        { doi: { $regex: escapedSearch, $options: 'i' } },
+        { paperType: { $regex: escapedSearch, $options: 'i' } },
+        { paperLink: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    } else {
+      filter._id = null;
+    }
   }
 
   const papers = await Paper.find(filter)
@@ -658,6 +667,10 @@ export async function updatePaper(req, res) {
 
   if (updates.title !== undefined) {
     updates.title = normalizeTitleForDuplicateCheck(updates.title);
+
+    if (updates.title.length > MAX_PAPER_TITLE_LENGTH) {
+      return res.status(400).json({ message: `Paper title must be ${MAX_PAPER_TITLE_LENGTH} characters or fewer` });
+    }
   }
 
   if (updates.doi !== undefined) {

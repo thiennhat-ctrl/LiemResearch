@@ -7,6 +7,7 @@ import { apiRequest } from '../lib/api';
 import { PAPER_TYPES, RELATED_SEMESTERS, APPLICATION_DOMAINS } from '../lib/papers';
 
 const MAX_PDF_SIZE = 50 * 1024 * 1024;
+const MAX_PAPER_TITLE_LENGTH = 255;
 
 type RequestPaperPageProps = {
   role?: 'user' | 'admin';
@@ -249,10 +250,14 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
+                  maxLength={MAX_PAPER_TITLE_LENGTH}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
                   placeholder="Enter the full title of the research paper"
                   required
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {formData.title.length}/{MAX_PAPER_TITLE_LENGTH} characters
+                </p>
               </div>
 
               {/* Row 2: DOI (left) and Paper Type (right) */}
@@ -591,6 +596,10 @@ function validatePaperRequest(data: {
 
   if (title.length < 8 || !hasEnoughWords(title, 3)) {
     return 'Please enter a clearer paper title.';
+  }
+
+  if (title.length > MAX_PAPER_TITLE_LENGTH) {
+    return `Paper title must be ${MAX_PAPER_TITLE_LENGTH} characters or fewer.`;
   }
 
   if (titleWordCount > 200) {

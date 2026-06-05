@@ -34,10 +34,11 @@ const allowedPaperTypes = [
   'Proposal',
   'Other',
 ];
+const MAX_PAPER_TITLE_LENGTH = 255;
 
 const paperSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true },
+    title: { type: String, required: true, trim: true, maxlength: MAX_PAPER_TITLE_LENGTH },
     doi: { type: String, required: true, trim: true },
     paperType: { type: String, required: true, trim: true, enum: allowedPaperTypes },
     paperLink: { type: String, required: true, trim: true },

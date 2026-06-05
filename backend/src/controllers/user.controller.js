@@ -16,11 +16,15 @@ function buildUserFilter({ search, role, status }) {
   if (status) filter.status = status;
   if (search) {
     const escapedSearch = escapeRegexSearch(search);
-    filter.$or = [
-      { fullName: { $regex: escapedSearch, $options: 'i' } },
-      { email: { $regex: escapedSearch, $options: 'i' } },
-      { university: { $regex: escapedSearch, $options: 'i' } },
-    ];
+    if (escapedSearch) {
+      filter.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+        { university: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    } else {
+      filter._id = null;
+    }
   }
 
   return filter;

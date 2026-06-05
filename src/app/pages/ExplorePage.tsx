@@ -40,7 +40,7 @@ export function ExplorePage() {
         page: String(page),
         limit: '8',
       });
-      if (searchTerm.trim()) params.set('search', searchTerm.trim());
+      if (searchTerm) params.set('search', searchTerm);
 
       setIsLoading(true);
       setError('');
