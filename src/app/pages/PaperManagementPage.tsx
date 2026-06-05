@@ -388,25 +388,25 @@ export function PaperManagementPage() {
     <div className="flex min-h-screen flex-col md:flex-row bg-surface-workspace bg-fixed">
       <Sidebar role="admin" />
 
-      <div className="min-w-0 flex-1 p-8">
+      <div className="min-w-0 flex-1 p-4 pt-20 sm:p-6 sm:pt-20 md:p-8">
         <AppHeader role="admin" />
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
               <h1 className="text-foreground mb-2">Paper Management</h1>
               <p className="text-muted-foreground">Manage and track all research paper requests</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={handleExportNotDownloaded}
-                className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-white transition-colors hover:bg-amber-700 sm:w-auto"
               >
                 <Download size={20} />
                 Export No PDF Yet
               </button>
               <button
                 onClick={handleExportAll}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 text-white transition-colors hover:bg-green-700 sm:w-auto"
               >
                 <Download size={20} />
                 Export All
@@ -426,9 +426,9 @@ export function PaperManagementPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg border border-border shadow-sm p-6 mb-6">
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
+          <div className="mb-6 rounded-lg border border-border bg-white p-4 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row">
+              <div className="relative min-w-0 lg:flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
                 <input
                   type="text"
@@ -439,12 +439,12 @@ export function PaperManagementPage() {
                   className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
                 />
               </div>
-              <div className="relative">
+              <div className="relative w-full lg:w-64">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="pl-10 pr-8 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background appearance-none"
+                  className="w-full appearance-none rounded-lg border border-border bg-input-background py-3 pl-10 pr-8 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending Review</option>
@@ -454,12 +454,12 @@ export function PaperManagementPage() {
                   <option value="pending-requester-acceptance">Waiting requester accept</option>
                 </select>
               </div>
-              <div className="relative">
+              <div className="relative w-full lg:w-48">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
                 <select
                   value={filterYear}
                   onChange={(e) => setFilterYear(e.target.value)}
-                  className="pl-10 pr-8 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background appearance-none"
+                  className="w-full appearance-none rounded-lg border border-border bg-input-background py-3 pl-10 pr-8 focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="all">All Years</option>
                   {years.map((year) => (
@@ -470,9 +470,9 @@ export function PaperManagementPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+          <div className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+            <div className="max-w-full overflow-x-auto">
+              <table className="w-full min-w-[960px]">
                 <thead className="bg-muted border-b border-border">
                   <tr>
                     <th className="px-6 py-4 text-left text-foreground">Paper Title</th>
@@ -487,13 +487,13 @@ export function PaperManagementPage() {
                   {filteredPapers.map((paper) => (
                     <tr key={paper._id} className="border-b border-border hover:bg-accent transition-colors">
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="text-foreground">{paper.title}</p>
-                          <p className="text-muted-foreground">DOI: {paper.doi}</p>
+                        <div className="max-w-[360px]">
+                          <p className="break-words text-foreground">{paper.title}</p>
+                          <p className="break-words text-muted-foreground">DOI: {paper.doi}</p>
                           <p className="text-muted-foreground">Type: {getPaperType(paper)}</p>
-                          <p className="text-muted-foreground">Authors: {paper.authors?.join(', ') || 'N/A'}</p>
-                          <p className="text-muted-foreground">Domain: {paper.applicationDomain || 'N/A'}</p>
-                          <p className="text-muted-foreground">Semesters: {(paper.relatedSemesters || []).map((s) => s).join(', ') || 'N/A'}</p>
+                          <p className="break-words text-muted-foreground">Authors: {paper.authors?.join(', ') || 'N/A'}</p>
+                          <p className="break-words text-muted-foreground">Domain: {paper.applicationDomain || 'N/A'}</p>
+                          <p className="break-words text-muted-foreground">Semesters: {(paper.relatedSemesters || []).map((s) => s).join(', ') || 'N/A'}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -510,7 +510,9 @@ export function PaperManagementPage() {
                               {/* Student ID removed */}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground">{paper.requestedBy?.university || 'N/A'}</td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        <span className="block max-w-[220px] break-words">{paper.requestedBy?.university || 'N/A'}</span>
+                      </td>
                       <td className="px-6 py-4 text-muted-foreground">{formatDisplayDate(paper.createdAt)}</td>
                       <td className="px-6 py-4">
                         <StatusBadge status={paper.status} />
@@ -754,7 +756,7 @@ export function PaperManagementPage() {
                 )}
               </div>
 
-                  <div className="flex gap-4 p-6 border-t border-border">
+              <div className="flex flex-col gap-3 border-t border-border p-4 sm:flex-row sm:p-6">
                 <div className="flex-1">
                   <button
                     onClick={() => requestToggleUserStatus(selectedUserProfile._id)}

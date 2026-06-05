@@ -86,7 +86,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
             <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </Link>
 
-          <form onSubmit={handleSearch} className="relative min-w-0 flex-1 md:max-w-3xl">
+          <form onSubmit={handleSearch} className="relative hidden min-w-0 flex-1 sm:block md:max-w-3xl">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" size={18} />
             <input
               value={query}

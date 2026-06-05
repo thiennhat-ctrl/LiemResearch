@@ -270,7 +270,7 @@ export function AdminProfilePage() {
 
       <div className="min-w-0 flex-1">
         <AppHeader role="admin" />
-        <div className="p-8">
+        <div className="p-4 pt-20 sm:p-6 sm:pt-20 md:p-8">
           <div className="mx-auto max-w-6xl">
             {isLoading && (
               <div className="mb-6">
@@ -294,13 +294,13 @@ export function AdminProfilePage() {
               <>
                 <section className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
                   <div className="h-28 bg-slate-800" />
-                  <div className="px-8 pb-8">
+                  <div className="px-4 pb-5 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
                     <div className="-mt-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                        <div className="flex h-28 w-28 items-center justify-center rounded-lg border-4 border-white bg-foreground text-4xl font-semibold text-white shadow-sm">
+                        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg border-4 border-white bg-foreground text-3xl font-semibold text-white shadow-sm sm:h-28 sm:w-28 sm:text-4xl">
                           {initials}
                         </div>
-                        <div className="pb-1">
+                        <div className="min-w-0 pb-1">
                           <div className="mb-3 flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
                               <CreditCard size={15} />
@@ -313,8 +313,8 @@ export function AdminProfilePage() {
                               Secure profile
                             </span>
                           </div>
-                          <h1 className="flex flex-wrap items-center gap-3 text-3xl font-semibold text-foreground">
-                            <span>{profile.fullName || 'Admin Profile'}</span>
+                          <h1 className="flex flex-wrap items-center gap-3 text-2xl font-semibold text-foreground sm:text-3xl">
+                            <span className="min-w-0 break-words">{profile.fullName || 'Admin Profile'}</span>
                             <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700">
                               <ShieldCheck size={16} />
                               Admin
@@ -336,14 +336,14 @@ export function AdminProfilePage() {
                       <button
                         type="button"
                         onClick={() => setIsEditing(true)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-primary-foreground transition-colors hover:bg-blue-600"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-primary-foreground transition-colors hover:bg-blue-600 sm:w-auto"
                       >
                         <Edit size={18} />
                         Edit Profile
                       </button>
                     </div>
 
-                    <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+                    <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       <ProfileMetric label="Papers" value={myPapers.length} icon={FileText} />
                       <ProfileMetric label="Approved" value={approvedPapers} icon={CheckCircle2} />
                       <ProfileMetric label="PDFs" value={pdfReadyPapers} icon={Upload} />
@@ -353,7 +353,7 @@ export function AdminProfilePage() {
                 </section>
 
                 <div className="mt-6 rounded-lg border border-border bg-white shadow-sm">
-                  <div className="flex border-b border-border px-4">
+                  <div className="flex overflow-x-auto border-b border-border px-2 sm:px-4">
                     <ProfileTabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
                       Overview
                     </ProfileTabButton>
@@ -365,7 +365,7 @@ export function AdminProfilePage() {
                     </ProfileTabButton>
                   </div>
 
-                  <div className="p-6 md:p-8">
+                  <div className="p-4 sm:p-6 md:p-8">
                     {activeTab === 'overview' && (
                       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                         <div>
@@ -391,7 +391,7 @@ export function AdminProfilePage() {
 
                     {activeTab === 'activity' && (
                       <div>
-                        <div className="mb-5 flex items-center justify-between gap-3">
+                        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
                             <h3 className="text-foreground">Recent Activity</h3>
                             <p className="mt-1 text-muted-foreground">Latest movement from your research requests.</p>
@@ -415,7 +415,7 @@ export function AdminProfilePage() {
                     {activeTab === 'settings' && (
                       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                         <section>
-                          <div className="mb-6 flex items-center justify-between gap-4">
+                          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <h3 className="text-foreground">Personal Information</h3>
                             {!isEditing ? (
                               <button
@@ -426,7 +426,7 @@ export function AdminProfilePage() {
                                 Edit
                               </button>
                             ) : (
-                              <div className="flex gap-3">
+                              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                                 <button
                                   onClick={handleCancel}
                                   className="rounded-lg border border-border px-4 py-2 transition-colors hover:bg-accent"
@@ -546,7 +546,7 @@ function ProfileTabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`border-b-2 px-4 py-4 text-sm font-medium transition-colors ${
+      className={`shrink-0 border-b-2 px-4 py-4 text-sm font-medium transition-colors ${
         active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
       }`}
     >
@@ -567,7 +567,7 @@ function ContributionRow({
   icon: ComponentType<{ size?: number; className?: string }>;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-border p-4">
+    <div className="flex items-start gap-4 rounded-lg border border-border p-4">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary">
         <Icon size={20} />
       </div>
@@ -575,7 +575,7 @@ function ContributionRow({
         <p className="font-medium text-foreground">{label}</p>
         <p className="text-sm text-muted-foreground">{detail}</p>
       </div>
-      <p className="text-2xl font-semibold text-foreground">{value}</p>
+      <p className="shrink-0 text-2xl font-semibold text-foreground">{value}</p>
     </div>
   );
 }
