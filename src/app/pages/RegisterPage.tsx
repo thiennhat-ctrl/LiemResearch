@@ -73,7 +73,7 @@ export function RegisterPage() {
 
     // studentId removed from registration
     if (!isValidEmail(formData.email)) {
-      setError('Vui lòng nhập email hợp lệ.');
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -84,7 +84,7 @@ export function RegisterPage() {
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.');
+      setError('Confirmation password does not match.');
       return;
     }
 
@@ -96,11 +96,11 @@ export function RegisterPage() {
         body: JSON.stringify(formData),
       });
 
-      showToast('Tạo tài khoản thành công. Vui lòng đăng nhập.', 'success');
+      showToast('Account created successfully. Please sign in.', 'success');
 
       navigate('/login', { state: { registered: true, email: formData.email } });
     } catch (err) {
-      setError(translateAuthMessage(err instanceof Error ? err.message : 'Đăng ký thất bại.'));
+      setError(translateAuthMessage(err instanceof Error ? err.message : 'Registration failed.'));
     } finally {
       setIsLoading(false);
     }
@@ -126,23 +126,23 @@ export function RegisterPage() {
         <section className="w-full max-w-lg">
           <div className="mb-6 text-center">
             <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-14 w-auto" />
-            <h1 className="mb-2 text-2xl font-semibold text-foreground md:text-3xl">Tham gia LiemResearch</h1>
-            <p className="text-sm leading-6 text-muted-foreground">Tạo tài khoản để yêu cầu bài báo, chia sẻ PDF và theo dõi đóng góp của bạn.</p>
+            <h1 className="mb-2 text-2xl font-semibold text-foreground md:text-3xl">Join LiemResearch</h1>
+            <p className="text-sm leading-6 text-muted-foreground">Create an account to request papers, share PDFs, and track your contributions.</p>
           </div>
 
           <div className="rounded-2xl border border-border/80 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <TextInput
-                label="Họ và tên"
+                label="Full Name"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
                 icon={User}
-                placeholder="Nguyễn Văn A"
+                placeholder="Nguyen Van A"
                 autoComplete="name"
               />
               <UniversitySearchInput
-                label="Trường đại học"
+                label="University"
                 value={formData.university}
                 onChange={(value) => {
                   setFormData({ ...formData, university: value });
@@ -157,7 +157,7 @@ export function RegisterPage() {
                 isOpen={isUniversityOpen}
                 suggestions={filteredUniversities}
                 icon={Building2}
-                placeholder="Tìm và chọn trường đại học"
+                placeholder="Search and choose your university"
               />
               <TextInput
                 label="Email"
@@ -170,24 +170,24 @@ export function RegisterPage() {
                 autoComplete="email"
               />
               <TextInput
-                label="Mật khẩu"
+                label="Password"
                 name="password"
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
                 icon={Lock}
-                placeholder="Ít nhất 8 ký tự"
+                placeholder="At least 8 characters"
                 autoComplete="new-password"
               />
               <PasswordStrengthChecklist password={formData.password} />
               <TextInput
-                label="Xác nhận mật khẩu"
+                label="Confirm Password"
                 name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 icon={Lock}
-                placeholder="Nhập lại mật khẩu"
+                placeholder="Re-enter your password"
                 autoComplete="new-password"
               />
 
@@ -202,18 +202,18 @@ export function RegisterPage() {
                 disabled={isLoading}
                 className="w-full rounded-lg bg-primary py-3 font-medium text-primary-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+                {isLoading ? 'Creating account...' : 'Create account'}
               </button>
             </form>
 
             <div className="mt-6 border-t border-border/70 pt-5 text-center">
               <p className="text-sm text-muted-foreground">
-                Đã có tài khoản?{' '}
+                Already have an account?{' '}
                 <button
                   onClick={() => navigate('/login')}
                   className="font-semibold text-primary hover:underline"
                 >
-                  Đăng nhập
+                  Sign in
                 </button>
               </p>
             </div>
@@ -327,7 +327,7 @@ function UniversitySearchInput({
 function validateUniversity(value: string) {
   const university = normalizeText(value);
   if (!university) {
-    return 'Vui lòng chọn trường đại học.';
+    return 'Please select your university.';
   }
 
   const isMatch = UNIVERSITY_LIST_VN.some(
@@ -335,7 +335,7 @@ function validateUniversity(value: string) {
   );
 
   if (!isMatch) {
-    return 'Vui lòng chọn trường đại học trong danh sách.';
+    return 'Please choose a university from the list.';
   }
 
   return '';

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BookOpen, Search, Star, TrendingUp } from 'lucide-react';
+import { BookOpen, Calendar, Download, Search, Star, TrendingUp } from 'lucide-react';
 import { apiRequest, getStoredUser } from '../lib/api';
 import { getPaperAuthors, PublicPaper } from '../lib/papers';
 
@@ -252,10 +252,22 @@ export function HomePage() {
 
                 <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
                   <div className="flex flex-wrap items-center gap-4">
-                    <span>{paper.applicationDomain || paper.paperType}</span>
-                    <span>{paper.publishedYear}</span>
-                    <span>{paper.averageRating.toFixed(1)} rating</span>
-                    <span>{paper.downloadCount} downloads</span>
+                    <span className="inline-flex items-center gap-1">
+                      <BookOpen size={15} />
+                      {paper.applicationDomain || paper.paperType}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar size={15} />
+                      {paper.publishedYear}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Star size={15} className={paper.averageRating > 0 ? 'fill-amber-400 text-amber-400' : 'text-slate-300'} />
+                      {paper.averageRating.toFixed(1)} rating
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Download size={15} />
+                      {paper.downloadCount} downloads
+                    </span>
                   </div>
                   <button
                     type="button"

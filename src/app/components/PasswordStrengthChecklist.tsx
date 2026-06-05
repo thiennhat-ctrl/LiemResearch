@@ -13,12 +13,12 @@ export function PasswordStrengthChecklist({ password, className = '' }: Password
   const missingRequirements = PASSWORD_REQUIREMENTS.filter((requirement) => !requirement.test(password));
 
   if (missingRequirements.length === 0) {
-    return <p className={`text-sm font-medium text-green-700 ${className}`}>Mật khẩu đủ mạnh.</p>;
+    return <p className={`text-sm font-medium text-green-700 ${className}`}>Password is strong.</p>;
   }
 
   return (
     <p className={`text-sm text-muted-foreground ${className}`}>
-      Mật khẩu cần có: {missingRequirements.map((requirement) => requirement.label).join(', ')}.
+      Password must include: {missingRequirements.map((requirement) => requirement.label).join(', ')}.
     </p>
   );
 }
