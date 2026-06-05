@@ -36,6 +36,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [missingRequiredFields, setMissingRequiredFields] = useState<string[]>([]);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,6 +48,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
     });
     setError('');
     setMessage('');
+    setMissingRequiredFields([]);
   };
 
   const handleSemesterToggle = (value: string, checked: boolean) => {
@@ -55,6 +57,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
     setFormData({ ...formData, relatedSemesters: Array.from(next) });
     setError('');
     setMessage('');
+    setMissingRequiredFields([]);
   };
   const [showSemesters, setShowSemesters] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -84,6 +87,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
   const setPdfFile = (file?: File) => {
     setError('');
     setMessage('');
+    setMissingRequiredFields([]);
 
     if (!file) {
       setSelectedFile(null);
@@ -130,9 +134,12 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
     e.preventDefault();
     setError('');
     setMessage('');
+    setMissingRequiredFields([]);
 
-    if (isContribution && !selectedFile) {
-      setError('Please choose a PDF file before submitting your contribution.');
+    const missingFields = getMissingRequiredFields(formData, isContribution, selectedFile);
+    if (missingFields.length > 0) {
+      setMissingRequiredFields(missingFields);
+      setError(`Please fill in the required fields: ${missingFields.join(', ')}.`);
       return;
     }
 
@@ -178,6 +185,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
           ? 'PDF contribution submitted successfully.'
           : 'Paper request submitted successfully.'
       );
+      setMissingRequiredFields([]);
       setSelectedFile(null);
       setTimeout(() => navigate(isAdmin ? '/admin' : '/my-requests'), 600);
     } catch (err) {
@@ -186,19 +194,6 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
       setIsSubmitting(false);
     }
   };
-
-  const isFormInvalid =
-    !formData.title.trim() ||
-    !formData.doi.trim() ||
-    !formData.paperType.trim() ||
-    !formData.link.trim() ||
-    !formData.abstract.trim() ||
-    !formData.authors.trim() ||
-    !formData.keywords.trim() ||
-    !formData.year ||
-    formData.relatedSemesters.length === 0 ||
-    (isContribution && !selectedFile) ||
-    (!formData.applicationDomain.trim() || (formData.applicationDomain === 'Other' && !formData.applicationDomainOther.trim()));
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-surface-request bg-fixed">
@@ -233,6 +228,13 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-700">{error}</p>
+                {missingRequiredFields.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+                    {missingRequiredFields.map((field) => (
+                      <li key={field}>{field}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 
@@ -242,7 +244,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               <div>
                 <label className="block text-foreground mb-2">Paper Title <span className="text-red-600">*</span></label>
                 <input
@@ -251,7 +253,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   value={formData.title}
                   onChange={handleChange}
                   maxLength={MAX_PAPER_TITLE_LENGTH}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                    missingRequiredFields.includes('Paper Title') ? 'border-red-300' : 'border-border'
+                  }`}
                   placeholder="Enter the full title of the research paper"
                   required
                 />
@@ -269,7 +273,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                     name="doi"
                     value={formData.doi}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                      missingRequiredFields.includes('DOI') ? 'border-red-300' : 'border-border'
+                    }`}
                     placeholder="10.1234/example.2024"
                     required
                   />
@@ -281,7 +287,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                     name="paperType"
                     value={formData.paperType}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                      missingRequiredFields.includes('Paper Type') ? 'border-red-300' : 'border-border'
+                    }`}
                     required
                   >
                     <option value="">Please Choose paper type</option>
@@ -303,7 +311,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                     name="year"
                     value={formData.year}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                      missingRequiredFields.includes('Publication Year') ? 'border-red-300' : 'border-border'
+                    }`}
                     placeholder="2024"
                     min={1900}
                     max={new Date().getFullYear() + 1}
@@ -319,7 +329,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                         ref={toggleRef}
                         type="button"
                         onClick={() => setShowSemesters((s) => !s)}
-                        className="w-full md:w-auto text-sm px-3 py-2 border border-border rounded-md bg-input-background hover:bg-gray-50 text-center"
+                        className={`w-full md:w-auto text-sm px-3 py-2 border rounded-md bg-input-background hover:bg-gray-50 text-center ${
+                          missingRequiredFields.includes('Related Semesters') ? 'border-red-300' : 'border-border'
+                        }`}
                         aria-expanded={showSemesters}
                       >
                         {formData.relatedSemesters.length > 0 ? `Selected (${formData.relatedSemesters.length})` : 'Select Semesters'}
@@ -371,7 +383,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   name="authors"
                   value={formData.authors}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                    missingRequiredFields.includes('Authors') ? 'border-red-300' : 'border-border'
+                  }`}
                   placeholder="Nguyen Van A, Tran Thi B"
                   required
                 />
@@ -386,7 +400,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   name="link"
                   value={formData.link}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                    missingRequiredFields.includes('Paper Link') ? 'border-red-300' : 'border-border'
+                  }`}
                   placeholder="https://example.com/paper"
                   required
                 />
@@ -400,7 +416,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   value={formData.abstract}
                   onChange={handleChange}
                   rows={6}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background resize-none"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background resize-none ${
+                    missingRequiredFields.includes('Abstract') ? 'border-red-300' : 'border-border'
+                  }`}
                   placeholder="Paste or enter the paper abstract..."
                   required
                 />
@@ -414,7 +432,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   name="keywords"
                   value={formData.keywords}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                    missingRequiredFields.includes('Keywords') ? 'border-red-300' : 'border-border'
+                  }`}
                   placeholder="machine learning, neural networks, classification"
                   required
                 />
@@ -428,7 +448,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   name="applicationDomain"
                   value={formData.applicationDomain}
                   onChange={(e) => handleChange(e)}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                    missingRequiredFields.includes('Application Domain') ? 'border-red-300' : 'border-border'
+                  }`}
                   required
                 >
                   <option value="">Select domain</option>
@@ -444,7 +466,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                     name="applicationDomainOther"
                     value={formData.applicationDomainOther}
                     onChange={handleChange}
-                    className="w-full mt-2 px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background"
+                    className={`w-full mt-2 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-input-background ${
+                      missingRequiredFields.includes('Custom Application Domain') ? 'border-red-300' : 'border-border'
+                    }`}
                     placeholder="Enter custom application domain"
                     required
                   />
@@ -469,6 +493,9 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
                   onDragOver={handleFileDragOver}
                   onDragLeave={handleFileDragLeave}
                   className={`rounded-lg border border-dashed px-4 py-5 transition-colors ${
+                    missingRequiredFields.includes('PDF File')
+                      ? 'border-red-300 bg-red-50'
+                      :
                     isDraggingFile
                       ? 'border-primary bg-blue-50'
                       : 'border-border bg-input-background hover:border-primary hover:bg-accent/40'
@@ -514,7 +541,7 @@ export function RequestPaperPage({ role = 'user' }: RequestPaperPageProps) {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  disabled={isSubmitting || isFormInvalid}
+                  disabled={isSubmitting}
                   className="flex-1 bg-primary text-primary-foreground py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Submitting...' : isAdmin ? 'Post Paper' : isContribution ? 'Submit Contribution' : 'Submit Request'}
@@ -551,6 +578,43 @@ function isHttpUrl(value: string) {
   } catch {
     return false;
   }
+}
+
+function getMissingRequiredFields(
+  data: {
+    title: string;
+    doi: string;
+    paperType: string;
+    link: string;
+    abstract: string;
+    keywords: string;
+    year: string;
+    authors: string;
+    relatedSemesters?: string[];
+    applicationDomain?: string;
+    applicationDomainOther?: string;
+  },
+  isContribution: boolean,
+  selectedFile: File | null
+) {
+  const missingFields: string[] = [];
+
+  if (!data.title.trim()) missingFields.push('Paper Title');
+  if (!data.doi.trim()) missingFields.push('DOI');
+  if (!data.paperType.trim()) missingFields.push('Paper Type');
+  if (!data.year.trim()) missingFields.push('Publication Year');
+  if ((data.relatedSemesters || []).length === 0) missingFields.push('Related Semesters');
+  if (!data.authors.trim()) missingFields.push('Authors');
+  if (!data.link.trim()) missingFields.push('Paper Link');
+  if (!data.abstract.trim()) missingFields.push('Abstract');
+  if (!data.keywords.trim()) missingFields.push('Keywords');
+  if (!data.applicationDomain?.trim()) missingFields.push('Application Domain');
+  if (data.applicationDomain === 'Other' && !data.applicationDomainOther?.trim()) {
+    missingFields.push('Custom Application Domain');
+  }
+  if (isContribution && !selectedFile) missingFields.push('PDF File');
+
+  return missingFields;
 }
 
 function validatePaperRequest(data: {
