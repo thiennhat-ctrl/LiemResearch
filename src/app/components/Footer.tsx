@@ -13,10 +13,10 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-[280px_1fr]">
           <div>
             <button type="button" onClick={() => navigate('/')} className="flex items-center gap-2 transition-opacity hover:opacity-70">
-              <span className="h-3 w-3 rounded-full bg-[#b5aea6]" />
+              <span className="h-3 w-3 rounded-full bg-[#94a3b8]" />
               <span className="text-sm font-bold tracking-wide text-white">LiemResearch</span>
             </button>
-            <p className="mt-4 max-w-[240px] text-xs leading-6 text-[#8f8780]">
+            <p className="mt-4 max-w-[240px] text-xs leading-6 text-[#64748b]">
               Dự án phi lợi nhuận vì mục tiêu bình đẳng hóa quyền truy cập tri thức khoa học tại Việt Nam.
             </p>
           </div>
@@ -25,24 +25,24 @@ export function Footer() {
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#5a544f]">Khám phá</p>
               <nav className="mt-4 space-y-3">
-                <button type="button" onClick={() => navigate('/explore')} className="block text-sm text-[#8f8780] transition-colors hover:text-white">Bài báo</button>
-                <button type="button" onClick={() => openProtectedPath('/request-paper')} className="block text-sm text-[#8f8780] transition-colors hover:text-white">Yêu cầu</button>
-                <button type="button" onClick={() => navigate('/rankings')} className="block text-sm text-[#8f8780] transition-colors hover:text-white">Bảng xếp hạng</button>
+                <button type="button" onClick={() => navigate('/explore')} className="block text-sm text-[#64748b] transition-colors hover:text-white">Bài báo</button>
+                <button type="button" onClick={() => openProtectedPath('/request-paper')} className="block text-sm text-[#64748b] transition-colors hover:text-white">Yêu cầu</button>
+                <button type="button" onClick={() => navigate('/rankings')} className="block text-sm text-[#64748b] transition-colors hover:text-white">Bảng xếp hạng</button>
               </nav>
             </div>
 
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#5a544f]">Tham gia</p>
               <nav className="mt-4 space-y-3">
-                <button type="button" onClick={() => openProtectedPath('/request-paper?mode=contribute')} className="block text-sm text-[#8f8780] transition-colors hover:text-white">Đóng góp PDF</button>
-                <button type="button" onClick={() => navigate('/login')} className="block text-sm text-[#8f8780] transition-colors hover:text-white">Đăng nhập</button>
-                <button type="button" onClick={() => navigate(currentUser ? '/profile' : '/register')} className="block text-sm text-[#8f8780] transition-colors hover:text-white">Hồ sơ</button>
+                <button type="button" onClick={() => openProtectedPath('/request-paper?mode=contribute')} className="block text-sm text-[#64748b] transition-colors hover:text-white">Đóng góp PDF</button>
+                <button type="button" onClick={() => navigate('/login')} className="block text-sm text-[#64748b] transition-colors hover:text-white">Đăng nhập</button>
+                <button type="button" onClick={() => navigate(currentUser ? '/profile' : '/register')} className="block text-sm text-[#64748b] transition-colors hover:text-white">Hồ sơ</button>
               </nav>
             </div>
 
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#5a544f]">Liên hệ</p>
-              <div className="mt-4 space-y-3 text-sm text-[#8f8780]">
+              <div className="mt-4 space-y-3 text-sm text-[#64748b]">
                 <p>Hanoi · Vietnam</p>
                 <p>Open Science Initiative</p>
                 <p>MMXXVI</p>

@@ -14,10 +14,10 @@ type RankingEntry = {
 };
 
 function RankMark({ rank }: { rank: number }) {
-  if (rank === 1) return <Trophy size={22} className="text-[#9b711d]" />;
-  if (rank === 2) return <Medal size={22} className="text-[#80756a]" />;
-  if (rank === 3) return <Award size={22} className="text-[#a66d43]" />;
-  return <span className="text-sm font-semibold text-[#9a9086]">{String(rank).padStart(2, '0')}</span>;
+  if (rank === 1) return <Trophy size={22} className="text-[#f59e0b]" />;
+  if (rank === 2) return <Medal size={22} className="text-[#64748b]" />;
+  if (rank === 3) return <Award size={22} className="text-[#2563eb]" />;
+  return <span className="text-sm font-semibold text-[#64748b]">{String(rank).padStart(2, '0')}</span>;
 }
 
 export function PublicRankingsPage() {
@@ -57,19 +57,19 @@ export function PublicRankingsPage() {
   }, [page]);
 
   return (
-    <div className="min-h-screen bg-[#f8f6f2] text-[#1f1a17]">
+    <div className="min-h-screen bg-[#f8fafc] text-[#1e293b]">
       <PublicHeader />
 
       <main>
-        <section className="border-b border-[#e5e0d8]">
+        <section className="border-b border-[#e2e8f0]">
           <div className="mx-auto max-w-7xl px-5 py-14 md:px-6 md:py-20 lg:px-8">
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#9a9086]">§ Vinh danh cộng đồng</p>
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-[#64748b]">§ Vinh danh cộng đồng</p>
             <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,1fr)_300px] md:items-end">
               <h1 className="max-w-4xl text-6xl font-black leading-[0.9] tracking-[-0.075em] md:text-7xl">
                 Những người
-                <span className="block font-serif font-normal italic text-[#a49b91]">đang góp sức.</span>
+                <span className="block font-serif font-normal italic text-[#64748b]">đang góp sức.</span>
               </h1>
-              <p className="text-sm leading-7 text-[#625a52]">
+              <p className="text-sm leading-7 text-[#475569]">
                 Bảng xếp hạng ghi nhận {total.toLocaleString()} thành viên qua tài liệu, PDF và đánh giá hữu ích.
               </p>
             </div>
@@ -78,47 +78,47 @@ export function PublicRankingsPage() {
 
         <section className="mx-auto max-w-6xl px-5 py-10 md:px-6 md:py-14">
           {error && <div className="mb-5 border border-[#efc8c8] bg-[#fff3f3] p-4 text-sm text-[#9d3d3d]">{error}</div>}
-          {isLoading && <p className="py-10 text-sm text-[#7d746a]">Đang tải bảng xếp hạng...</p>}
+          {isLoading && <p className="py-10 text-sm text-[#64748b]">Đang tải bảng xếp hạng...</p>}
 
           {!isLoading && rankings.length > 0 && (
-            <div className="border-t border-[#d8d0c4]">
+            <div className="border-t border-[#cbd5e1]">
               {rankings.map((item) => (
                 <article
                   key={item.user._id}
-                  className="grid gap-4 border-b border-[#e5e0d8] py-6 md:grid-cols-[70px_minmax(0,1fr)_280px_120px] md:items-center"
+                  className="grid gap-4 border-b border-[#e2e8f0] py-6 md:grid-cols-[70px_minmax(0,1fr)_280px_120px] md:items-center"
                 >
                   <div className="flex items-center gap-3">
                     <RankMark rank={item.rank} />
-                    <span className="text-sm font-semibold text-[#7d746a]">#{item.rank}</span>
+                    <span className="text-sm font-semibold text-[#64748b]">#{item.rank}</span>
                   </div>
 
                   <div>
                     <h2 className="text-lg font-semibold">{item.user.fullName}</h2>
-                    <p className="mt-1 text-sm text-[#7d746a]">{item.user.university || 'Thành viên LiemResearch'}</p>
+                    <p className="mt-1 text-sm text-[#64748b]">{item.user.university || 'Thành viên LiemResearch'}</p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 text-sm text-[#7d746a]">
+                  <div className="grid grid-cols-3 gap-3 text-sm text-[#64748b]">
                     <span className="flex items-center gap-1.5"><FileText size={15} /> {item.uploadedPapers} bài</span>
                     <span className="flex items-center gap-1.5"><Upload size={15} /> {item.uploadedPdfs} PDF</span>
                     <span className="flex items-center gap-1.5"><Star size={15} /> {item.ratingsGiven} đánh giá</span>
                   </div>
 
-                  <p className="text-left text-2xl font-bold md:text-right">{item.points.toLocaleString()} <span className="text-xs font-medium text-[#9a9086]">điểm</span></p>
+                  <p className="text-left text-2xl font-bold md:text-right">{item.points.toLocaleString()} <span className="text-xs font-medium text-[#64748b]">điểm</span></p>
                 </article>
               ))}
             </div>
           )}
 
           {!isLoading && rankings.length === 0 && !error && (
-            <div className="border border-[#e5e0d8] bg-white p-10 text-center">
-              <Trophy size={34} className="mx-auto text-[#b8afa6]" />
-              <p className="mt-4 text-sm text-[#7d746a]">Chưa có dữ liệu xếp hạng.</p>
+            <div className="border border-[#e2e8f0] bg-white p-10 text-center">
+              <Trophy size={34} className="mx-auto text-[#94a3b8]" />
+              <p className="mt-4 text-sm text-[#64748b]">Chưa có dữ liệu xếp hạng.</p>
             </div>
           )}
 
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-between border-t border-[#d8d0c4] pt-5">
-              <p className="text-sm text-[#7d746a]">
+            <div className="mt-8 flex items-center justify-between border-t border-[#cbd5e1] pt-5">
+              <p className="text-sm text-[#64748b]">
                 Trang {page} / {totalPages}
               </p>
               <div className="flex gap-3">
@@ -126,7 +126,7 @@ export function PublicRankingsPage() {
                   type="button"
                   disabled={page === 1 || isLoading}
                   onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
-                  className="rounded-full border border-[#d8d0c4] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] disabled:opacity-40"
+                  className="rounded-full border border-[#cbd5e1] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] disabled:opacity-40"
                 >
                   Trước
                 </button>
@@ -134,7 +134,7 @@ export function PublicRankingsPage() {
                   type="button"
                   disabled={page === totalPages || isLoading}
                   onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
-                  className="rounded-full bg-[#1f1a17] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white disabled:opacity-40"
+                  className="rounded-full bg-[#1e293b] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white disabled:opacity-40"
                 >
                   Sau
                 </button>

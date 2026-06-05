@@ -76,7 +76,7 @@ export function UserPublicProfilePage() {
   const academicRank = calculateCurrentRank(ranking?.points ?? 0, ranking?.uploadedPapers ?? 0);
 
   return (
-    <div className="min-h-screen bg-[#f5f3f0]">
+    <div className="min-h-screen bg-[#f8fafc]">
       <AppHeader role="user" />
 
       <main className="pt-16 md:pt-0">

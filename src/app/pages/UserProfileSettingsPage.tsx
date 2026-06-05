@@ -119,7 +119,7 @@ export function UserProfileSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f3f0]">
+    <div className="min-h-screen bg-[#f8fafc]">
       <AppHeader role="user" />
 
       <main className="mx-auto grid max-w-6xl gap-6 px-4 pb-12 pt-24 md:grid-cols-[240px_minmax(0,1fr)] md:pt-10">

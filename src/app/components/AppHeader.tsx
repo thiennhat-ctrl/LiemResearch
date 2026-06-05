@@ -70,36 +70,36 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
 
   const handleLogout = () => {
     clearAuth();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-[#dfd4c7] bg-[#fffaf4]/95 backdrop-blur">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-[#e2e8f0] bg-[#ffffff]/95 backdrop-blur">
         <div className="flex h-16 w-full items-center gap-3 px-4 md:h-[73px] md:px-6">
           <Link
             to={workspacePath}
             onClick={() => window.scrollTo(0, 0)}
             className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-9 w-9 rounded-lg border border-[#e2d6c7] bg-white object-contain p-1 md:h-10 md:w-10" />
-            <span className="hidden text-base font-semibold text-[#1f1a17] sm:block">LiemResearch</span>
+            <img src={logo} alt="LiemResearch" className="h-9 w-9 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-10 md:w-10" />
+            <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </Link>
 
           <form onSubmit={handleSearch} className="relative min-w-0 flex-1 md:max-w-3xl">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8a7b6f]" size={18} />
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" size={18} />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search papers..."
-              className="w-full rounded-lg border border-[#dfd4c7] bg-white py-2 pl-10 pr-3 text-sm text-[#1f1a17] outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(122,111,97,0.12)]"
+              className="w-full rounded-lg border border-[#e2e8f0] bg-white py-2 pl-10 pr-3 text-sm text-[#1e293b] outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(37,99,235,0.16)]"
             />
           </form>
 
           <div className="ml-auto flex shrink-0 items-center gap-3">
             <Link
               to={actionPath}
-              className="hidden items-center gap-2 rounded-lg border border-[#2f251f] px-3 py-2 text-sm font-semibold text-[#2f251f] transition-colors hover:bg-[#2f251f] hover:text-[#fffaf4] sm:inline-flex"
+              className="hidden items-center gap-2 rounded-lg border border-[#2563eb] px-3 py-2 text-sm font-semibold text-[#2563eb] transition-colors hover:bg-[#2563eb] hover:text-[#ffffff] sm:inline-flex"
             >
               <Plus size={17} />
               {actionLabel}
@@ -111,7 +111,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
               <button
                 type="button"
                 onClick={() => setIsAccountOpen((current) => !current)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#6f5438] text-xs font-semibold text-white transition-opacity hover:opacity-85"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2563eb] text-xs font-semibold text-white transition-opacity hover:opacity-85"
                 aria-label="Open account menu"
                 aria-expanded={isAccountOpen}
               >
@@ -119,10 +119,10 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
               </button>
 
               {isAccountOpen && (
-                <div className="absolute right-0 top-12 w-64 rounded-lg border border-[#dfd4c7] bg-white p-2 text-sm shadow-xl">
-                  <div className="border-b border-[#eadfce] px-3 py-2.5">
-                    <p className="font-semibold text-[#1f1a17]">{user?.fullName || 'LiemResearch user'}</p>
-                    <p className="mt-0.5 truncate text-xs text-[#7d6d60]">{user?.email}</p>
+                <div className="absolute right-0 top-12 w-64 rounded-lg border border-[#e2e8f0] bg-white p-2 text-sm shadow-xl">
+                  <div className="border-b border-[#e2e8f0] px-3 py-2.5">
+                    <p className="font-semibold text-[#1e293b]">{user?.fullName || 'LiemResearch user'}</p>
+                    <p className="mt-0.5 truncate text-xs text-[#64748b]">{user?.email}</p>
                     <span className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
                       <CreditCard size={14} />
                       {user?.credits ?? 0} credits
@@ -139,7 +139,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
                     <Link
                       to={profilePath}
                       onClick={() => setIsAccountOpen(false)}
-                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1f1a17] transition-colors hover:bg-[#f3ebe1]"
+                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1e293b] transition-colors hover:bg-[#eff6ff]"
                     >
                       <User size={17} />
                       Profile
@@ -147,7 +147,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
                     <Link
                       to={workspacePath}
                       onClick={() => setIsAccountOpen(false)}
-                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1f1a17] transition-colors hover:bg-[#f3ebe1]"
+                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1e293b] transition-colors hover:bg-[#eff6ff]"
                     >
                       <LayoutDashboard size={17} />
                       Dashboard
@@ -155,14 +155,14 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
                     <Link
                       to={settingsPath}
                       onClick={() => setIsAccountOpen(false)}
-                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1f1a17] transition-colors hover:bg-[#f3ebe1]"
+                      className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[#1e293b] transition-colors hover:bg-[#eff6ff]"
                     >
                       <Settings size={17} />
                       Settings
                     </Link>
                   </div>
 
-                  <div className="border-t border-[#eadfce] pt-2">
+                  <div className="border-t border-[#e2e8f0] pt-2">
                     <button
                       type="button"
                       onClick={handleLogout}
