@@ -115,7 +115,7 @@ export function RegisterPage() {
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-left transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-9 w-auto lg:h-10" />
+            <img src={logo} alt="LiemResearch" className="h-16 w-auto lg:h-18" />
             <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
           </button>
 
@@ -125,7 +125,7 @@ export function RegisterPage() {
       <main className="mx-auto flex max-w-7xl justify-center px-4 py-10 sm:px-5 lg:px-6">
         <section className="w-full max-w-lg">
           <div className="mb-6 text-center">
-            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-14 w-auto" />
+            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-28 w-auto" />
             <h1 className="mb-2 text-2xl font-semibold text-foreground md:text-3xl">Join LiemResearch</h1>
             <p className="text-sm leading-6 text-muted-foreground">Create an account to request papers, share PDFs, and track your contributions.</p>
           </div>
