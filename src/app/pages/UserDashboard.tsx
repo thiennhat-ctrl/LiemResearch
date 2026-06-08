@@ -152,7 +152,7 @@ export function UserDashboard() {
       <Sidebar role="user" />
 
       <div className="min-w-0 flex-1">
-        <AppHeader role="user" />
+        <AppHeader role="user" hideAction />
         <div className="p-5">
           <div className="max-w-7xl mx-auto">
           <div className="mb-4 flex flex-col gap-3">

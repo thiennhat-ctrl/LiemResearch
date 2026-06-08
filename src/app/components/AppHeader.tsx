@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { CreditCard, LayoutDashboard, LogOut, Plus, Search, Settings, User } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { apiRequest, clearAuth, getStoredUser } from '../lib/api';
@@ -8,11 +8,13 @@ import { getRankImage } from '../lib/rankVisuals';
 
 interface AppHeaderProps {
   role?: 'user' | 'admin';
+  hideAction?: boolean;
 }
 
-export function AppHeader({ role = 'user' }: AppHeaderProps) {
+export function AppHeader({ role = 'user', hideAction = false }: AppHeaderProps) {
   const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getStoredUser();
   const workspacePath = role === 'admin' ? '/admin' : '/dashboard';
   const actionPath = role === 'admin' ? '/admin/post-paper' : '/request-paper';
@@ -97,13 +99,15 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
           </form>
 
           <div className="ml-auto flex shrink-0 items-center gap-3">
-            <Link
-              to={actionPath}
-              className="hidden items-center gap-2 rounded-lg border border-[#2563eb] px-3 py-2 text-sm font-semibold text-[#2563eb] transition-colors hover:bg-[#2563eb] hover:text-[#ffffff] sm:inline-flex"
-            >
-              <Plus size={17} />
-              {actionLabel}
-            </Link>
+            {!hideAction && location.pathname !== actionPath && (
+              <Link
+                to={actionPath}
+                className="hidden items-center gap-2 rounded-lg border border-[#2563eb] px-3 py-2 text-sm font-semibold text-[#2563eb] transition-colors hover:bg-[#2563eb] hover:text-[#ffffff] sm:inline-flex"
+              >
+                <Plus size={17} />
+                {actionLabel}
+              </Link>
+            )}
 
             <NotificationBell />
 

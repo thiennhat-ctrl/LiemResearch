@@ -155,7 +155,7 @@ export function MyRequestsPage() {
       <Sidebar role="user" />
 
       <div className="min-w-0 flex-1">
-        <AppHeader role="user" />
+        <AppHeader role="user" hideAction />
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
@@ -165,10 +165,10 @@ export function MyRequestsPage() {
             </div>
             <button
               onClick={() => navigate('/request-paper')}
-              className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#2563eb] px-4 py-2 text-[#ffffff] transition-colors hover:bg-[#1e293b]"
             >
               <Plus size={20} />
-              New Request
+              Request Paper
             </button>
           </div>
 
@@ -349,7 +349,7 @@ export function MyRequestsPage() {
               {!searchTerm && filterStatus === 'all' && (
                 <button
                   onClick={() => navigate('/request-paper')}
-                  className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#2563eb] px-4 py-2 text-[#ffffff] transition-colors hover:bg-[#1e293b]"
                 >
                   <Plus size={20} />
                   Submit Your First Request
