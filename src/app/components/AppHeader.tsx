@@ -84,7 +84,7 @@ export function AppHeader({ role = 'user', hideAction = false }: AppHeaderProps)
             onClick={() => window.scrollTo(0, 0)}
             className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-9 w-9 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-10 md:w-10" />
+            <img src={logo} alt="LiemResearch" className="h-14 w-14 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-[64px] md:w-[64px] max-h-full" />
             <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </Link>
 

@@ -97,7 +97,7 @@ export function HomePage() {
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-left"
           >
-            <img src={logo} alt="LiemResearch" className="h-10 w-auto" />
+            <img src={logo} alt="LiemResearch" className="h-20 w-auto" />
             <span className="text-lg font-medium text-foreground">LiemResearch</span>
           </button>
 
