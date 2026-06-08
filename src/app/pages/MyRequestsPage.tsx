@@ -160,7 +160,7 @@ export function MyRequestsPage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-foreground mb-2">My Requests</h1>
+                <h1 className="text-foreground min-w-0 shrink-0 text-3xl font-bold mb-2">My Requests</h1>
                 <p className="text-muted-foreground">View and manage all your research paper requests</p>
               </div>
               <button

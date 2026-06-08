@@ -176,7 +176,7 @@ export function AdminBrowseDashboard() {
       <Sidebar role="admin" />
 
       <div className="min-w-0 flex-1">
-        <AppHeader role="admin" />
+        <AppHeader role="admin" hideAction />
         <div className="p-5">
           <div className="mx-auto max-w-7xl">
             <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
