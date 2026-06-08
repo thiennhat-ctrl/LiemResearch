@@ -88,16 +88,6 @@ export function AppHeader({ role = 'user', hideAction = false }: AppHeaderProps)
             <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </Link>
 
-          <form onSubmit={handleSearch} className="relative hidden min-w-0 flex-1 sm:block md:max-w-3xl">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" size={18} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search papers..."
-              className="w-full rounded-lg border border-[#e2e8f0] bg-white py-2 pl-10 pr-3 text-sm text-[#1e293b] outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(37,99,235,0.16)]"
-            />
-          </form>
-
           <div className="ml-auto flex shrink-0 items-center gap-3">
             {!hideAction && location.pathname !== actionPath && (
               <Link
