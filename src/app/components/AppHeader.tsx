@@ -11,7 +11,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ role = 'user' }: AppHeaderProps) {
-  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
   const navigate = useNavigate();
   const user = getStoredUser();
   const workspacePath = role === 'admin' ? '/admin' : '/dashboard';
@@ -82,7 +82,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
             onClick={() => window.scrollTo(0, 0)}
             className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-9 w-9 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-10 md:w-10" />
+            <img src={logo} alt="LiemResearch" className="h-10 w-auto md:h-12" />
             <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </Link>
 

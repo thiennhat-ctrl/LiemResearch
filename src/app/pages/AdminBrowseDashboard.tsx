@@ -193,14 +193,6 @@ export function AdminBrowseDashboard() {
                   <Megaphone size={20} />
                   Announcement
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin/post-paper')}
-                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-colors hover:bg-blue-600"
-                >
-                  <Plus size={20} />
-                  Post Paper
-                </button>
               </div>
             </div>
 

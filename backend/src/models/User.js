@@ -12,6 +12,19 @@ const userSchema = new mongoose.Schema(
     points: { type: Number, default: 0 },
     credits: { type: Number, default: 0 },
     penaltyPoints: { type: Number, default: 0, min: 0 },
+    otpCode: { 
+    type: String, 
+    default: null 
+  },
+  otpExpires: { 
+    type: Date, 
+    default: null 
+  },
+  status: { 
+    type: String, 
+    enum: ['pending', 'active', 'banned'], 
+    default: 'pending' // pending nghĩa là chưa xác thực OTP
+  },
   },
   { timestamps: true }
 );

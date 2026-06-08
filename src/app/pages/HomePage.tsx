@@ -19,7 +19,7 @@ function formatDate(value: string) {
 export function HomePage() {
   const navigate = useNavigate();
   const currentUser = getStoredUser();
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
   const [papers, setPapers] = useState<PublicPaper[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -97,8 +97,8 @@ export function HomePage() {
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-left"
           >
-            <img src={logo} alt="LiemResearch" className="h-10 w-auto" />
-            <span className="text-lg font-medium text-foreground">LiemResearch</span>
+            <img src={logo} alt="LiemResearch" className="h-10 w-auto lg:h-12" />
+            <span className="text-xl font-semibold text-foreground">LiemResearch</span>
           </button>
 
           <div className="relative hidden flex-1 md:block">

@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { Bell, Lock, Palette, Save, Settings2, User } from 'lucide-react';
+import { Bell, Lock, Palette, Save, Settings2, User, Eye, EyeOff } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { PasswordStrengthChecklist } from '../components/PasswordStrengthChecklist';
@@ -250,10 +250,26 @@ function TextInput({ label, value, disabled, onChange }: { label: string; value:
 }
 
 function PasswordInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <label className="block">
       <span className="mb-2 block font-medium text-foreground">{label}</span>
-      <input type="password" value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-md border border-border bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-primary" />
+      <div className="relative">
+        <input
+          type={showPassword ? 'text' : 'password'}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full rounded-md border border-border bg-white pl-4 pr-12 py-3 outline-none focus:ring-2 focus:ring-primary"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label={showPassword ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+        >
+          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+      </div>
     </label>
   );
 }

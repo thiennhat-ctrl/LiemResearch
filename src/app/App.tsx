@@ -24,8 +24,14 @@ const PaperManagementPage = lazy(() => import('./pages/PaperManagementPage').the
 const UserManagementPage = lazy(() => import('./pages/UserManagementPage').then((module) => ({ default: module.UserManagementPage })));
 const PaperDetailPage = lazy(() => import('./pages/PaperDetailPage').then((module) => ({ default: module.PaperDetailPage })));
 
+// --- THÊM IMPORT CHO 2 TRANG MỚI Ở ĐÂY ---
+// (Lưu ý: Vì ở file trước tôi viết là 'export default function', nên ở đây chỉ cần import trực tiếp)
+const VerifyOTPPage = lazy(() => import('./pages/VerifyOTPPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+
 const LAST_PATH_KEY = 'last-pathname';
-const PUBLIC_PATHS = new Set(['/', '/explore', '/rankings', '/login', '/register']);
+// --- BỔ SUNG ĐƯỜNG DẪN VÀO PUBLIC_PATHS ĐỂ KHÔNG BỊ CHẶN ---
+const PUBLIC_PATHS = new Set(['/', '/explore', '/rankings', '/login', '/register', '/verify-otp', '/forgot-password']);
 
 function AdminRouteGuard() {
   const location = useLocation();
@@ -123,6 +129,11 @@ export default function App() {
             <Route path="/rankings" element={<PublicRankingsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            
+            {/* --- THÊM 2 ROUTE MỚI Ở ĐÂY --- */}
+            <Route path="/verify-otp" element={<VerifyOTPPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
             <Route path="/dashboard" element={<ProtectedRoute role="user"><UserDashboard /></ProtectedRoute>} />
             <Route path="/my-requests" element={<ProtectedRoute role="user"><MyRequestsPage /></ProtectedRoute>} />
             <Route path="/dashboard/rankings" element={<ProtectedRoute role="user"><UserRankingPage /></ProtectedRoute>} />

@@ -1,5 +1,15 @@
 import { Router } from 'express';
-import { changePassword, deleteMe, login, me, register, updateMe } from '../controllers/auth.controller.js';
+import {
+    changePassword,
+    deleteMe,
+    login,
+    me,
+    register,
+    updateMe,
+    verifyRegisterOTP,    // Hàm mới
+    forgotPassword,       // Hàm mới
+    resetPassword         // Hàm mới
+} from '../controllers/auth.controller.js';
 import { requireAuth } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -162,5 +172,88 @@ router.post('/change-password', requireAuth, changePassword);
  *         description: Account deleted
  */
 router.delete('/me', requireAuth, deleteMe);
+/**
+ * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     summary: Xác thực mã OTP để kích hoạt tài khoản
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@liemresearch.com
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Xác thực thành công
+ *       400:
+ *         description: OTP sai hoặc đã hết hạn
+ */
+router.post('/verify-otp', verifyRegisterOTP);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Yêu cầu gửi mã OTP khôi phục mật khẩu
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@liemresearch.com
+ *     responses:
+ *       200:
+ *         description: Đã gửi email chứa mã OTP
+ *       404:
+ *         description: Email không tồn tại
+ */
+router.post('/forgot-password', forgotPassword);
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Đặt lại mật khẩu mới bằng mã OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp, newPassword]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@liemresearch.com
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *               newPassword:
+ *                 type: string
+ *                 example: User123456New
+ *     responses:
+ *       200:
+ *         description: Đổi mật khẩu thành công
+ *       400:
+ *         description: OTP sai hoặc mật khẩu không hợp lệ
+ */
+router.post('/reset-password', resetPassword);
 
 export default router;

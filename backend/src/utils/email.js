@@ -1,0 +1,46 @@
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Khởi tạo transporter cho nodemailer sử dụng SMTP
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.EMAIL_PORT || '587', 10),
+  secure: process.env.EMAIL_PORT === '465', // true cho port 465 (SSL), false cho các port khác (e.g. 587 TLS)
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+export async function sendOTPEmail(email, otpCode, type = 'register') {
+  let subject = 'Xác thực tài khoản - LiemResearch';
+  let message = `Mã OTP xác thực đăng ký tài khoản của bạn là: <b style="font-size: 18px; color: #1e40af;">${otpCode}</b>. Mã này có hiệu lực trong vòng 15 phút.`;
+
+  if (type === 'forgot') {
+    subject = 'Khôi phục mật khẩu - LiemResearch';
+    message = `Mã OTP khôi phục mật khẩu tài khoản của bạn là: <b style="font-size: 18px; color: #dc2626;">${otpCode}</b>. Mã này có hiệu lực trong vòng 15 phút. Vui lòng tuyệt đối không chia sẻ mã này với bất kỳ ai.`;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || `"LiemResearch Team" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #0f172a; text-align: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">${subject}</h2>
+        <p style="font-size: 15px; color: #334155;">Xin chào,</p>
+        <p style="font-size: 15px; color: #334155; line-height: 1.6;">${message}</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (err) {
+    console.error('Không thể gửi email OTP qua Nodemailer:', err);
+    throw err;
+  }
+}

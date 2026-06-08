@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Building2, Lock, Mail, User } from 'lucide-react';
+import { Building2, Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { apiRequest, AuthUser, getStoredUser, getToken } from '../lib/api';
 import { useToast } from '../components/ToastProvider';
 import { PasswordStrengthChecklist } from '../components/PasswordStrengthChecklist';
@@ -10,7 +10,7 @@ import { getPasswordStrengthError } from '../lib/passwordStrength';
 import { translateAuthMessage } from '../lib/authMessages';
 
 export function RegisterPage() {
-  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
@@ -96,9 +96,11 @@ export function RegisterPage() {
         body: JSON.stringify(formData),
       });
 
-      showToast('Account created successfully. Please sign in.', 'success');
+      // --- PHẦN DUY NHẤT ĐƯỢC SỬA ---
+      showToast('Đăng ký thành công. Vui lòng kiểm tra email để lấy mã OTP.', 'success');
 
-      navigate('/login', { state: { registered: true, email: formData.email } });
+      navigate('/verify-otp', { state: { email: formData.email } });
+      // -----------------------------
     } catch (err) {
       setError(translateAuthMessage(err instanceof Error ? err.message : 'Registration failed.'));
     } finally {
@@ -115,7 +117,7 @@ export function RegisterPage() {
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-left transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-9 w-auto lg:h-10" />
+            <img src={logo} alt="LiemResearch" className="h-10 w-auto lg:h-12" />
             <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
           </button>
 
@@ -125,7 +127,7 @@ export function RegisterPage() {
       <main className="mx-auto flex max-w-7xl justify-center px-4 py-10 sm:px-5 lg:px-6">
         <section className="w-full max-w-lg">
           <div className="mb-6 text-center">
-            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-14 w-auto" />
+            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-56 w-auto" />
             <h1 className="mb-2 text-2xl font-semibold text-foreground md:text-3xl">Join LiemResearch</h1>
             <p className="text-sm leading-6 text-muted-foreground">Create an account to request papers, share PDFs, and track your contributions.</p>
           </div>
@@ -243,21 +245,34 @@ function TextInput({
   type?: string;
   autoComplete?: string;
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+
   return (
     <div>
       <label className="mb-2 block text-foreground">{label}</label>
       <div className="relative">
         <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
         <input
-          type={type}
+          type={isPassword ? (showPassword ? 'text' : 'password') : type}
           name={name}
           value={value}
           onChange={onChange}
-          className="w-full rounded-lg border border-border bg-[color:var(--input-background)] py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-ring"
+          className={`w-full rounded-lg border border-border bg-[color:var(--input-background)] py-3 pl-10 ${isPassword ? 'pr-12' : 'pr-4'} focus:outline-none focus:ring-2 focus:ring-ring`}
           placeholder={placeholder}
           autoComplete={autoComplete}
           required
         />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        )}
       </div>
     </div>
   );

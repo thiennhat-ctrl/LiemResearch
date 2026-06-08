@@ -7,7 +7,7 @@ import { translateAuthMessage } from '../lib/authMessages';
 
 export function LoginPage() {
   const { showToast } = useToast();
-  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -91,7 +91,7 @@ export function LoginPage() {
             onClick={() => navigate('/')}
             className="flex items-center gap-3 text-left transition-opacity hover:opacity-80"
           >
-            <img src={logo} alt="LiemResearch" className="h-9 w-auto lg:h-10" />
+            <img src={logo} alt="LiemResearch" className="h-10 w-auto lg:h-12" />
             <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
           </button>
 
@@ -101,7 +101,7 @@ export function LoginPage() {
       <main className="mx-auto flex max-w-7xl justify-center px-4 py-10 sm:px-5 lg:px-6">
         <div className="w-full max-w-lg">
           <div className="mb-6 text-center">
-            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-14 w-auto" />
+            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-56 w-auto" />
             <h1 className="mb-2 text-2xl font-semibold text-foreground md:text-3xl">Welcome back</h1>
             <p className="text-sm leading-6 text-muted-foreground">Sign in to continue using LiemResearch.</p>
           </div>
@@ -149,6 +149,17 @@ export function LoginPage() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
+                {/* --- NÚT FORGOT PASSWORD ĐÃ ĐƯỢC CHUYỂN XUỐNG DƯỚI Ô INPUT --- */}
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm font-semibold text-primary hover:underline focus:outline-none"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                {/* ------------------------------------------------------------- */}
               </div>
 
               <button

@@ -161,14 +161,6 @@ export function UserDashboard() {
                 <h1 className="text-foreground mb-2">Dashboard</h1>
                 <p className="text-[#64748b]">Browse research papers and request what you need.</p>
               </div>
-
-              <button
-                onClick={() => navigate('/request-paper')}
-                className="inline-flex items-center gap-2 self-start rounded-lg bg-[#2563eb] px-4 py-2 text-[#ffffff] transition-colors hover:bg-[#1e293b] lg:self-auto"
-              >
-                <Plus size={20} />
-                Request Paper
-              </button>
             </div>
             <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#e2e8f0] bg-[#ffffff] p-2 shadow-sm">
               <span className="px-3 text-sm font-medium text-[#64748b]">Filter by</span>
