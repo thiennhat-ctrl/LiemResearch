@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ComponentType } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { Sidebar } from '../components/Sidebar';
 import { AppHeader } from '../components/AppHeader';
 import { LoadingSkeleton } from '../components/LoadingSpinner';
@@ -79,6 +80,7 @@ function getInitials(name: string) {
 }
 
 export function AdminProfilePage() {
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const storedUser = getStoredUser();
   const initialProfile = storedUser
@@ -333,14 +335,13 @@ export function AdminProfilePage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => setIsEditing(true)}
+                      <Link
+                        to="/settings/profile"
                         className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-primary-foreground transition-colors hover:bg-blue-600 sm:w-auto"
                       >
                         <Edit size={18} />
                         Edit Profile
-                      </button>
+                      </Link>
                     </div>
 
                     <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -360,7 +361,7 @@ export function AdminProfilePage() {
                     <ProfileTabButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')}>
                       Activity
                     </ProfileTabButton>
-                    <ProfileTabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')}>
+                    <ProfileTabButton active={activeTab === 'settings'} onClick={() => navigate('/settings/profile')}>
                       Settings
                     </ProfileTabButton>
                   </div>

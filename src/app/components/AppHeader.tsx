@@ -18,7 +18,7 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
   const actionPath = role === 'admin' ? '/admin/post-paper' : '/request-paper';
   const actionLabel = role === 'admin' ? 'Post Paper' : 'Request Paper';
   const profilePath = role === 'admin' ? '/admin/profile' : '/profile';
-  const settingsPath = role === 'admin' ? '/admin/profile' : '/settings/profile';
+  const settingsPath = '/settings/profile';
   const [query, setQuery] = useState('');
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [ranking, setRanking] = useState<{ points: number; uploadedPapers: number } | null>(null);

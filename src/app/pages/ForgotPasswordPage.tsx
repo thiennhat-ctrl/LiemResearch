@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="sm:mx-auto sm:w-full sm:max-w-lg">
         <div className="flex justify-center">
           <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-56 w-auto" />
         </div>
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
         </h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-slate-200">
           
           {/* STEP 1: ENTER EMAIL */}
@@ -124,13 +124,14 @@ export default function ForgotPasswordPage() {
 
           {/* STEP 2: ENTER OTP & RESET PASSWORD */}
           {step === 2 && (
-            <form className="space-y-6" onSubmit={handleResetPassword}>
+            <form className="space-y-6" onSubmit={handleResetPassword} autoComplete="off">
               {success && <div className="text-green-600 text-sm bg-green-50 p-3 rounded mb-4">{success}</div>}
               
               <div>
                 <label className="block text-sm font-medium text-slate-700">OTP Code (from email)</label>
                 <input
                   type="text" maxLength={6} required
+                  autoComplete="one-time-code"
                   value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm tracking-widest text-center font-bold"
                   placeholder="123456"
@@ -145,6 +146,7 @@ export default function ForgotPasswordPage() {
                    </div>
                   <input
                     type={showNewPassword ? 'text' : 'password'} required
+                    autoComplete="new-password"
                     value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                     className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
@@ -166,6 +168,7 @@ export default function ForgotPasswordPage() {
                    </div>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'} required
+                    autoComplete="new-password"
                     value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                     className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />

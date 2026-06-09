@@ -140,7 +140,7 @@ export default function App() {
             <Route path="/profile" element={<ProtectedRoute role="user"><UserPublicProfilePage /></ProtectedRoute>} />
             <Route path="/profile/settings" element={<Navigate to="/settings/profile" replace />} />
             <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
-            <Route path="/settings/:section" element={<ProtectedRoute role="user"><UserProfileSettingsPage /></ProtectedRoute>} />
+            <Route path="/settings/:section" element={<ProtectedRoute><UserProfileSettingsPage /></ProtectedRoute>} />
             <Route path="/request-paper" element={<ProtectedRoute role="user"><RequestPaperPage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute role="admin"><AdminBrowseDashboard /></ProtectedRoute>} />
             <Route path="/admin/stats" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />

@@ -1,11 +1,14 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { Bell, Lock, Palette, Save, Settings2, User, Eye, EyeOff } from 'lucide-react';
+import { Bell, Lock, Palette, Save, Settings2, User, Eye, EyeOff, Building2 } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
+import { Sidebar } from '../components/Sidebar';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { PasswordStrengthChecklist } from '../components/PasswordStrengthChecklist';
 import { apiRequest, AuthUser, clearAuth, getStoredUser, getToken, saveAuth } from '../lib/api';
 import { getPasswordStrengthError } from '../lib/passwordStrength';
+import { UNIVERSITY_LIST_VN } from '../lib/universities';
+import { normalizeText } from '../lib/validation';
 
 type SettingsSection = 'profile' | 'customization' | 'notifications' | 'account';
 
@@ -19,6 +22,7 @@ const emptyProfile: ProfileForm = { fullName: '', university: '', email: '' };
 
 export function UserProfileSettingsPage() {
   const storedUser = getStoredUser();
+  const isAdmin = storedUser?.role === 'admin';
   const { section = 'profile' } = useParams();
   const activeSection: SettingsSection = ['profile', 'customization', 'notifications', 'account'].includes(section)
     ? (section as SettingsSection)
@@ -30,6 +34,20 @@ export function UserProfileSettingsPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUniversityOpen, setIsUniversityOpen] = useState(false);
+
+  const filteredUniversities = UNIVERSITY_LIST_VN.filter((university) =>
+    university.toLowerCase().includes(profile.university.trim().toLowerCase())
+  ).slice(0, 8);
+
+  const handleUniversitySelect = (university: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      university,
+    }));
+    setIsUniversityOpen(false);
+    setError('');
+  };
   const [deletePassword, setDeletePassword] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -45,6 +63,13 @@ export function UserProfileSettingsPage() {
     event.preventDefault();
     setError('');
     setMessage('');
+
+    const universityError = validateUniversity(profile.university);
+    if (universityError) {
+      setError(universityError);
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -119,95 +144,115 @@ export function UserProfileSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-      <AppHeader role="user" />
+    <div className={isAdmin ? "flex min-h-screen flex-col md:flex-row bg-[#f8fafc]" : "min-h-screen bg-[#f8fafc]"}>
+      {isAdmin && <Sidebar role="admin" />}
 
-      <main className="mx-auto grid max-w-6xl gap-6 px-4 pb-12 pt-24 md:grid-cols-[240px_minmax(0,1fr)] md:pt-10">
-        <aside>
-          <Link to="/profile" className="mb-3 block px-3 text-2xl font-semibold text-primary">
-            @{profileHandle}
-          </Link>
-          <nav className="space-y-1">
-            <SettingsNav to="/settings/profile" icon={User} label="Profile" active={activeSection === 'profile'} />
-            <SettingsNav to="/settings/customization" icon={Palette} label="Customization" active={activeSection === 'customization'} />
-            <SettingsNav to="/settings/notifications" icon={Bell} label="Notifications" active={activeSection === 'notifications'} />
-            <SettingsNav to="/settings/account" icon={Settings2} label="Account" active={activeSection === 'account'} />
-          </nav>
-        </aside>
+      <div className="min-w-0 flex-1">
+        <AppHeader role={isAdmin ? 'admin' : 'user'} />
 
-        <section className="min-w-0">
-          {message && <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">{message}</div>}
-          {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>}
+        <main className="mx-auto grid max-w-6xl gap-6 px-4 pb-12 pt-24 md:grid-cols-[240px_minmax(0,1fr)] md:pt-10">
+          <aside>
+            <Link to={isAdmin ? "/admin/profile" : "/profile"} className="mb-3 block px-3 text-2xl font-semibold text-primary">
+              @{profileHandle}
+            </Link>
+            <nav className="space-y-1">
+              <SettingsNav to="/settings/profile" icon={User} label="Profile" active={activeSection === 'profile'} />
+              <SettingsNav to="/settings/customization" icon={Palette} label="Customization" active={activeSection === 'customization'} />
+              <SettingsNav to="/settings/notifications" icon={Bell} label="Notifications" active={activeSection === 'notifications'} />
+              <SettingsNav to="/settings/account" icon={Settings2} label="Account" active={activeSection === 'account'} />
+            </nav>
+          </aside>
 
-          {activeSection === 'profile' && (
-            <SettingsCard title="Profile">
-              <form onSubmit={handleSaveProfile} className="space-y-5">
-                <TextInput label="Name" value={profile.fullName} onChange={(value) => setProfile({ ...profile, fullName: value })} />
-                <TextInput label="Email" value={profile.email} disabled onChange={() => undefined} />
-                <TextInput label="University" value={profile.university} onChange={(value) => setProfile({ ...profile, university: value })} />
-                <button disabled={isSaving} className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60">
-                  <Save size={18} />
-                  {isSaving ? 'Saving...' : 'Save profile information'}
-                </button>
-              </form>
-            </SettingsCard>
-          )}
+          <section className="min-w-0">
+            {message && <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">{message}</div>}
+            {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>}
 
-          {(activeSection === 'customization' || activeSection === 'notifications') && (
-            <SettingsCard title={activeSection === 'customization' ? 'Customization' : 'Notifications'}>
-              <p className="text-muted-foreground">This section is ready for future preferences.</p>
-            </SettingsCard>
-          )}
-
-          {activeSection === 'account' && (
-            <div className="space-y-6">
-            <SettingsCard title="Account">
-              <form onSubmit={handleChangePassword} className="max-w-xl space-y-5">
-                <div className="flex items-center gap-2">
-                  <Lock size={19} className="text-primary" />
-                  <h3 className="font-semibold text-foreground">Change password</h3>
-                </div>
-                <PasswordInput label="Current password" value={passwordForm.currentPassword} onChange={(value) => setPasswordForm({ ...passwordForm, currentPassword: value })} />
-                <PasswordInput label="New password" value={passwordForm.newPassword} onChange={(value) => setPasswordForm({ ...passwordForm, newPassword: value })} />
-                <PasswordStrengthChecklist password={passwordForm.newPassword} />
-                <PasswordInput label="Confirm new password" value={passwordForm.confirmPassword} onChange={(value) => setPasswordForm({ ...passwordForm, confirmPassword: value })} />
-                <button disabled={isSaving} className="rounded-md bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60">
-                  {isSaving ? 'Updating...' : 'Update password'}
-                </button>
-              </form>
-            </SettingsCard>
-
-            <div className="rounded-lg border border-red-200 bg-white p-6 shadow-sm md:p-8">
-              <h2 className="text-2xl font-semibold text-red-600">Danger Zone</h2>
-              <h3 className="mt-7 text-lg font-semibold text-foreground">Delete account</h3>
-              <p className="mt-3 text-muted-foreground">
-                Deleting your account will permanently remove your profile and your paper requests. This action cannot be undone.
-              </p>
-              <div className="mt-5 max-w-xl">
-                <label className="block">
-                  <span className="mb-2 block font-medium text-foreground">Confirm your password</span>
-                  <input
-                    type="password"
-                    value={deletePassword}
-                    onChange={(event) => setDeletePassword(event.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full rounded-md border border-border bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
+            {activeSection === 'profile' && (
+              <SettingsCard title="Profile">
+                <form onSubmit={handleSaveProfile} className="space-y-5">
+                  <TextInput label="Name" value={profile.fullName} onChange={(value) => setProfile({ ...profile, fullName: value })} />
+                  <TextInput label="Email" value={profile.email} disabled onChange={() => undefined} />
+                  <UniversitySearchInput
+                    label="University"
+                    value={profile.university}
+                    onChange={(value) => {
+                      setProfile({ ...profile, university: value });
+                      setIsUniversityOpen(true);
+                      setError('');
+                    }}
+                    onSelect={handleUniversitySelect}
+                    onFocus={() => setIsUniversityOpen(true)}
+                    onBlur={() => {
+                      window.setTimeout(() => setIsUniversityOpen(false), 150);
+                    }}
+                    isOpen={isUniversityOpen}
+                    suggestions={filteredUniversities}
+                    placeholder="Search and choose your university"
                   />
-                </label>
-                <button
-                  type="button"
-                  disabled={!deletePassword}
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="mt-4 rounded-md bg-red-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Delete account
-                </button>
+                  <button disabled={isSaving} className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60">
+                    <Save size={18} />
+                    {isSaving ? 'Saving...' : 'Save profile information'}
+                  </button>
+                </form>
+              </SettingsCard>
+            )}
+
+            {(activeSection === 'customization' || activeSection === 'notifications') && (
+              <SettingsCard title={activeSection === 'customization' ? 'Customization' : 'Notifications'}>
+                <p className="text-muted-foreground">This section is ready for future preferences.</p>
+              </SettingsCard>
+            )}
+
+            {activeSection === 'account' && (
+              <div className="space-y-6">
+                <SettingsCard title="Account">
+                  <form onSubmit={handleChangePassword} className="max-w-xl space-y-5">
+                    <div className="flex items-center gap-2">
+                      <Lock size={19} className="text-primary" />
+                      <h3 className="font-semibold text-foreground">Change password</h3>
+                    </div>
+                    <PasswordInput label="Current password" value={passwordForm.currentPassword} onChange={(value) => setPasswordForm({ ...passwordForm, currentPassword: value })} />
+                    <PasswordInput label="New password" value={passwordForm.newPassword} onChange={(value) => setPasswordForm({ ...passwordForm, newPassword: value })} />
+                    <PasswordStrengthChecklist password={passwordForm.newPassword} />
+                    <PasswordInput label="Confirm new password" value={passwordForm.confirmPassword} onChange={(value) => setPasswordForm({ ...passwordForm, confirmPassword: value })} />
+                    <button disabled={isSaving} className="rounded-md bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60">
+                      {isSaving ? 'Updating...' : 'Update password'}
+                    </button>
+                  </form>
+                </SettingsCard>
+
+                <div className="rounded-lg border border-red-200 bg-white p-6 shadow-sm md:p-8">
+                  <h2 className="text-2xl font-semibold text-red-600">Danger Zone</h2>
+                  <h3 className="mt-7 text-lg font-semibold text-foreground">Delete account</h3>
+                  <p className="mt-3 text-muted-foreground">
+                    Deleting your account will permanently remove your profile and your paper requests. This action cannot be undone.
+                  </p>
+                  <div className="mt-5 max-w-xl">
+                    <label className="block">
+                      <span className="mb-2 block font-medium text-foreground">Confirm your password</span>
+                      <input
+                        type="password"
+                        value={deletePassword}
+                        onChange={(event) => setDeletePassword(event.target.value)}
+                        placeholder="Enter your password"
+                        className="w-full rounded-md border border-border bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      disabled={!deletePassword}
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="mt-4 rounded-md bg-red-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Delete account
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-            </div>
-          )}
-        </section>
-      </main>
+            )}
+          </section>
+        </main>
+      </div>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
@@ -272,4 +317,79 @@ function PasswordInput({ label, value, onChange }: { label: string; value: strin
       </div>
     </label>
   );
+}
+
+function UniversitySearchInput({
+  label,
+  value,
+  onChange,
+  onSelect,
+  onFocus,
+  onBlur,
+  isOpen,
+  suggestions,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (value: string) => void;
+  onFocus: () => void;
+  onBlur: () => void;
+  isOpen: boolean;
+  suggestions: string[];
+  placeholder?: string;
+}) {
+  return (
+    <div className="relative block">
+      <label className="block">
+        <span className="mb-2 block font-medium text-foreground">{label}</span>
+        <input
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          className="w-full rounded-md border border-border bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-primary"
+          placeholder={placeholder}
+          autoComplete="off"
+          required
+        />
+      </label>
+
+      {isOpen && suggestions.length > 0 && (
+        <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-border/80 bg-white/95 shadow-[0_20px_60px_rgba(31,29,26,0.12)] backdrop-blur">
+          {suggestions.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onSelect(item)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Building2 size={16} className="text-muted-foreground" />
+              <span className="truncate">{item}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function validateUniversity(value: string) {
+  const university = normalizeText(value);
+  if (!university) {
+    return 'Please select your university.';
+  }
+
+  const isMatch = UNIVERSITY_LIST_VN.some(
+    (item) => normalizeText(item).toLowerCase() === university.toLowerCase()
+  );
+
+  if (!isMatch) {
+    return 'Please choose a university from the list.';
+  }
+
+  return '';
 }
