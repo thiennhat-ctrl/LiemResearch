@@ -165,9 +165,9 @@ export function MyRequestsPage() {
               </div>
               <button
                 onClick={() => navigate('/request-paper')}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#2563eb] px-4 py-2 text-[#ffffff] transition-colors hover:bg-[#1e293b]"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-medium text-[#ffffff] transition-all hover:bg-[#1e40af] hover:shadow-md"
               >
-                <Plus size={20} />
+                <Plus size={18} />
                 Request Paper
               </button>
             </div>
@@ -348,9 +348,9 @@ export function MyRequestsPage() {
                 {!searchTerm && filterStatus === 'all' && (
                   <button
                     onClick={() => navigate('/request-paper')}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#2563eb] px-4 py-2 text-[#ffffff] transition-colors hover:bg-[#1e293b]"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-medium text-[#ffffff] transition-all hover:bg-[#1e40af] hover:shadow-md"
                   >
-                    <Plus size={20} />
+                    <Plus size={18} />
                     Submit Your First Request
                   </button>
                 )}

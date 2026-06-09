@@ -19,7 +19,7 @@ function formatDate(value: string) {
 export function HomePage() {
   const navigate = useNavigate();
   const currentUser = getStoredUser();
-  const logo = new URL('../../imports/Gemini_Generated_Image_s2fnqas2fnqas2fn.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const [papers, setPapers] = useState<PublicPaper[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -95,14 +95,17 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-6 md:h-[73px]">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 text-left"
+            onClick={() => {
+              navigate('/');
+              window.scrollTo(0, 0);
+            }}
+            className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80 text-left"
           >
-            <img src={logo} alt="LiemResearch" className="h-20 w-auto" />
-            <span className="text-lg font-medium text-foreground">LiemResearch</span>
+            <img src={logo} alt="LiemResearch" className="h-14 w-14 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-[64px] md:w-[64px] max-h-full" />
+            <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </button>
 
           <div className="relative hidden flex-1 md:block">

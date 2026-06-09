@@ -92,9 +92,9 @@ export function AppHeader({ role = 'user', hideAction = false }: AppHeaderProps)
             {!hideAction && location.pathname !== actionPath && (
               <Link
                 to={actionPath}
-                className="hidden items-center gap-2 rounded-lg border border-[#2563eb] px-3 py-2 text-sm font-semibold text-[#2563eb] transition-colors hover:bg-[#2563eb] hover:text-[#ffffff] sm:inline-flex"
+                className="hidden shrink-0 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-medium text-[#ffffff] transition-all hover:bg-[#1e40af] hover:shadow-md sm:inline-flex"
               >
-                <Plus size={17} />
+                <Plus size={18} />
                 {actionLabel}
               </Link>
             )}

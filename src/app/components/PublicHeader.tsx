@@ -17,7 +17,7 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#e2e8f0] bg-[#f8fafc]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-5 px-5 py-4 md:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-5 px-5 md:h-[73px] md:px-6 lg:px-8">
         <button
           type="button"
           onClick={() => navigate('/')}

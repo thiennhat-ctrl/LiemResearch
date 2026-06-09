@@ -85,14 +85,17 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-surface-feed bg-fixed text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-5 lg:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-5 md:h-[73px] lg:px-6">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 text-left transition-opacity hover:opacity-80"
+            onClick={() => {
+              navigate('/');
+              window.scrollTo(0, 0);
+            }}
+            className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80 text-left"
           >
-            <img src={logo} alt="LiemResearch" className="h-16 w-auto lg:h-18" />
-            <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
+            <img src={logo} alt="LiemResearch" className="h-14 w-14 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-[64px] md:w-[64px] max-h-full" />
+            <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </button>
 
         </div>
