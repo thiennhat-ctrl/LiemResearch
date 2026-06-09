@@ -85,14 +85,17 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-surface-feed bg-fixed text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-5 lg:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-5 md:h-[73px] lg:px-6">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 text-left transition-opacity hover:opacity-80"
+            onClick={() => {
+              navigate('/');
+              window.scrollTo(0, 0);
+            }}
+            className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80 text-left"
           >
-            <img src={logo} alt="LiemResearch" className="h-10 w-auto lg:h-12" />
-            <span className="text-base font-semibold tracking-tight text-foreground lg:text-lg">LiemResearch</span>
+            <img src={logo} alt="LiemResearch" className="h-14 w-14 rounded-lg border border-[#e2e8f0] bg-white object-contain p-1 md:h-[64px] md:w-[64px] max-h-full" />
+            <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </button>
 
         </div>
@@ -101,7 +104,7 @@ export function LoginPage() {
       <main className="mx-auto flex max-w-7xl justify-center px-4 py-10 sm:px-5 lg:px-6">
         <div className="w-full max-w-lg">
           <div className="mb-6 text-center">
-            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-56 w-auto" />
+            <img src={logo} alt="LiemResearch" className="mx-auto mb-4 h-28 w-auto" />
             <h1 className="mb-2 text-2xl font-semibold text-foreground md:text-3xl">Welcome back</h1>
             <p className="text-sm leading-6 text-muted-foreground">Sign in to continue using LiemResearch.</p>
           </div>

@@ -19,13 +19,15 @@ function formatDate(value: string) {
 export function HomePage() {
   const navigate = useNavigate();
   const currentUser = getStoredUser();
-  const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
+  const logo = new URL('../../imports/liemresearch-logo.png', import.meta.url).href;
   const [papers, setPapers] = useState<PublicPaper[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedTag, setSelectedTag] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     let isMounted = true;
@@ -37,15 +39,17 @@ export function HomePage() {
       try {
         const params = new URLSearchParams();
         params.set('sortBy', sortBy);
-        params.set('limit', '30');
+        params.set('limit', '10');
+        params.set('page', String(page));
 
         const query = selectedTag || searchTerm;
         if (query) params.set('search', query);
 
-        const data = await apiRequest<{ papers: PublicPaper[] }>(`/public-papers?${params.toString()}`);
+        const data = await apiRequest<{ papers: PublicPaper[]; pagination?: { totalPages?: number } }>(`/public-papers?${params.toString()}`);
 
         if (isMounted) {
           setPapers(data.papers);
+          setTotalPages(data.pagination?.totalPages ?? 1);
         }
       } catch (err) {
         if (isMounted) setError(err instanceof Error ? err.message : 'Unable to load papers');
@@ -60,7 +64,7 @@ export function HomePage() {
       isMounted = false;
       window.clearTimeout(timeoutId);
     };
-  }, [searchTerm, selectedTag, sortBy]);
+  }, [searchTerm, selectedTag, sortBy, page]);
 
   const popularTags = useMemo(() => {
     const counts = new Map<string, number>();
@@ -91,11 +95,14 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-3">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-6 md:h-[73px]">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 text-left"
+            onClick={() => {
+              navigate('/');
+              window.scrollTo(0, 0);
+            }}
+            className="flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-80 text-left"
           >
             <img src={logo} alt="LiemResearch" className="h-10 w-auto lg:h-12" />
             <span className="text-xl font-semibold text-foreground">LiemResearch</span>
@@ -109,6 +116,7 @@ export function HomePage() {
               onChange={(event) => {
                 setSearchTerm(event.target.value);
                 setSelectedTag('');
+                setPage(1);
               }}
               placeholder="Search papers by title, DOI, keyword, or journal..."
               className="w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -153,7 +161,7 @@ export function HomePage() {
             </button>
             <button
               type="button"
-              onClick={() => setSortBy('rating')}
+              onClick={() => { setSortBy('rating'); setPage(1); }}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-muted-foreground transition-colors hover:bg-white hover:text-foreground"
             >
               <Star size={18} />
@@ -161,7 +169,7 @@ export function HomePage() {
             </button>
             <button
               type="button"
-              onClick={() => setSortBy('downloads')}
+              onClick={() => { setSortBy('downloads'); setPage(1); }}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-muted-foreground transition-colors hover:bg-white hover:text-foreground"
             >
               <TrendingUp size={18} />
@@ -180,6 +188,7 @@ export function HomePage() {
                 onChange={(event) => {
                   setSearchTerm(event.target.value);
                   setSelectedTag('');
+                  setPage(1);
                 }}
                 placeholder="Search papers..."
                 className="w-full rounded-lg border border-border bg-input-background py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -192,7 +201,7 @@ export function HomePage() {
               <button
                 key={tab.value}
                 type="button"
-                onClick={() => setSortBy(tab.value)}
+                onClick={() => { setSortBy(tab.value); setPage(1); }}
                 className={`border-b-2 px-3 py-3 text-sm transition-colors ${
                   sortBy === tab.value
                     ? 'border-primary text-primary'
@@ -242,6 +251,7 @@ export function HomePage() {
                       onClick={() => {
                         setSelectedTag(keyword);
                         setSearchTerm('');
+                        setPage(1);
                       }}
                       className="rounded-md bg-accent px-2 py-1 text-sm text-accent-foreground transition-colors hover:bg-blue-200"
                     >
@@ -281,6 +291,32 @@ export function HomePage() {
             ))}
           </div>
 
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-4 py-3 shadow-sm">
+              <p className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                  disabled={page === 1 || isLoading}
+                  className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((currentPage) => Math.min(totalPages, currentPage + 1))}
+                  disabled={page === totalPages || isLoading}
+                  className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+
           {!isLoading && papers.length === 0 && (
             <div className="rounded-lg border border-border bg-white p-10 text-center">
               <Search size={40} className="mx-auto mb-3 text-muted-foreground" />
@@ -301,6 +337,7 @@ export function HomePage() {
                   onClick={() => {
                     setSelectedTag(tag);
                     setSearchTerm('');
+                    setPage(1);
                   }}
                   className={`rounded-md px-2 py-1 text-sm transition-colors ${
                     selectedTag === tag

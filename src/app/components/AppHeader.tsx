@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { CreditCard, LayoutDashboard, LogOut, Plus, Search, Settings, User } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { apiRequest, clearAuth, getStoredUser } from '../lib/api';
@@ -8,11 +8,13 @@ import { getRankImage } from '../lib/rankVisuals';
 
 interface AppHeaderProps {
   role?: 'user' | 'admin';
+  hideAction?: boolean;
 }
 
-export function AppHeader({ role = 'user' }: AppHeaderProps) {
+export function AppHeader({ role = 'user', hideAction = false }: AppHeaderProps) {
   const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getStoredUser();
   const workspacePath = role === 'admin' ? '/admin' : '/dashboard';
   const actionPath = role === 'admin' ? '/admin/post-paper' : '/request-paper';
@@ -86,24 +88,16 @@ export function AppHeader({ role = 'user' }: AppHeaderProps) {
             <span className="hidden text-base font-semibold text-[#1e293b] sm:block">LiemResearch</span>
           </Link>
 
-          <form onSubmit={handleSearch} className="relative hidden min-w-0 flex-1 sm:block md:max-w-3xl">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" size={18} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search papers..."
-              className="w-full rounded-lg border border-[#e2e8f0] bg-white py-2 pl-10 pr-3 text-sm text-[#1e293b] outline-none transition-shadow focus:shadow-[0_0_0_3px_rgba(37,99,235,0.16)]"
-            />
-          </form>
-
           <div className="ml-auto flex shrink-0 items-center gap-3">
-            <Link
-              to={actionPath}
-              className="hidden items-center gap-2 rounded-lg border border-[#2563eb] px-3 py-2 text-sm font-semibold text-[#2563eb] transition-colors hover:bg-[#2563eb] hover:text-[#ffffff] sm:inline-flex"
-            >
-              <Plus size={17} />
-              {actionLabel}
-            </Link>
+            {!hideAction && location.pathname !== actionPath && (
+              <Link
+                to={actionPath}
+                className="hidden shrink-0 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-medium text-[#ffffff] transition-all hover:bg-[#1e40af] hover:shadow-md sm:inline-flex"
+              >
+                <Plus size={18} />
+                {actionLabel}
+              </Link>
+            )}
 
             <NotificationBell />
 
