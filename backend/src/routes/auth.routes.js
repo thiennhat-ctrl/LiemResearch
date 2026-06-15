@@ -6,6 +6,7 @@ import {
     me,
     register,
     updateMe,
+    verifyEmail,
     verifyRegisterOTP,    // Hàm mới
     forgotPassword,       // Hàm mới
     resetPassword         // Hàm mới
@@ -199,6 +200,7 @@ router.delete('/me', requireAuth, deleteMe);
  *         description: OTP sai hoặc đã hết hạn
  */
 router.post('/verify-otp', verifyRegisterOTP);
+router.post('/verify-email', verifyEmail);
 
 /**
  * @swagger

@@ -96,11 +96,9 @@ export function RegisterPage() {
         body: JSON.stringify(formData),
       });
 
-      // --- PHẦN DUY NHẤT ĐƯỢC SỬA ---
-      showToast('Đăng ký thành công. Vui lòng kiểm tra email để lấy mã OTP.', 'success');
+      showToast('Registration successful. Please check your email to verify your account.', 'success');
 
-      navigate('/verify-otp', { state: { email: formData.email } });
-      // -----------------------------
+      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError(translateAuthMessage(err instanceof Error ? err.message : 'Registration failed.'));
     } finally {

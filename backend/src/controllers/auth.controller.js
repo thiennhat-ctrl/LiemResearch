@@ -1,11 +1,12 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { signToken } from '../utils/token.js';
 import { deleteUserRelatedData } from '../utils/paperCleanup.js';
 import { syncUserPoints } from '../utils/points.js';
 import { normalizeText, validateFullName, validateUniversity } from '../utils/validation.js';
 import { validatePasswordStrength } from '../utils/passwordStrength.js';
-import { sendOTPEmail } from '../utils/email.js';
+import { sendOTPEmail, sendVerificationEmail } from '../utils/email.js';
 
 function isPresent(value) {
   return value !== undefined && value !== null;
@@ -13,6 +14,18 @@ function isPresent(value) {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
+function createEmailVerification() {
+  return {
+    token: crypto.randomBytes(32).toString('hex'),
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  };
+}
+
+function buildEmailVerificationUrl(token) {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  return `${clientUrl.replace(/\/$/, '')}/verify-email?token=${encodeURIComponent(token)}`;
 }
 
 export async function register(req, res) {
@@ -49,26 +62,27 @@ export async function register(req, res) {
   if (existingUser) {
     if (existingUser.status === 'pending') {
       // Allow re-registering / updating details for unverified accounts (pending)
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      const verification = createEmailVerification();
       const passwordHash = await bcrypt.hash(password, 10);
 
       existingUser.fullName = normalizeText(fullName);
       existingUser.university = normalizeText(university);
       existingUser.passwordHash = passwordHash;
-      existingUser.otpCode = otpCode;
-      existingUser.otpExpires = otpExpires;
+      existingUser.emailVerificationToken = verification.token;
+      existingUser.emailVerificationExpires = verification.expires;
+      existingUser.otpCode = null;
+      existingUser.otpExpires = null;
       await existingUser.save();
 
-      console.log(`[OTP Register - Retry] Email: ${existingUser.email} | OTP: ${otpCode}`);
+      console.log(`[Email Verification - Retry] Email: ${existingUser.email} | URL: ${buildEmailVerificationUrl(verification.token)}`);
 
       try {
-        await sendOTPEmail(existingUser.email, otpCode, 'register');
-        return res.status(201).json({ message: 'Please check your email to get the OTP code for account verification.' });
+        await sendVerificationEmail(existingUser.email, buildEmailVerificationUrl(verification.token));
+        return res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
       } catch (error) {
         console.error('Error sending email:', error);
         return res.status(201).json({ 
-          message: 'Registration successful but failed to send email. Please check the server console for the OTP code to verify.',
+          message: 'Registration successful but failed to send the verification email. Please check the server console for the verification link.',
           isEmailFailed: true 
         });
       }
@@ -76,10 +90,7 @@ export async function register(req, res) {
     return res.status(409).json({ message: 'Email already exists' });
   }
 
-  // Generate random 6-digit OTP code
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
+  const verification = createEmailVerification();
   const passwordHash = await bcrypt.hash(password, 10);
   
   const user = await User.create({
@@ -87,21 +98,20 @@ export async function register(req, res) {
     university: normalizeText(university),
     email: String(email).trim().toLowerCase(),
     passwordHash,
-    otpCode,
-    otpExpires,
+    emailVerificationToken: verification.token,
+    emailVerificationExpires: verification.expires,
     status: 'pending' // Pending activation status
   });
 
-  console.log(`[OTP Register] Email: ${user.email} | OTP: ${otpCode}`);
+  console.log(`[Email Verification] Email: ${user.email} | URL: ${buildEmailVerificationUrl(verification.token)}`);
 
   try {
-    // Send email containing OTP code
-    await sendOTPEmail(user.email, otpCode, 'register');
-    res.status(201).json({ message: 'Please check your email to get the OTP code for account verification.' });
+    await sendVerificationEmail(user.email, buildEmailVerificationUrl(verification.token));
+    res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
   } catch (error) {
     console.error('Error sending email:', error);
     res.status(201).json({ 
-      message: 'Registration successful but failed to send email. Please check the server console for the OTP code to verify.',
+      message: 'Registration successful but failed to send the verification email. Please check the server console for the verification link.',
       isEmailFailed: true 
     });
   }
@@ -123,7 +133,7 @@ export async function login(req, res) {
 
   // Kiểm tra trạng thái xác thực OTP
   if (user.status === 'pending') {
-    return res.status(403).json({ message: 'Your account has not been verified. Please check your OTP email.' });
+    return res.status(403).json({ message: 'Your account has not been verified. Please check your verification email.' });
   }
 
   // Kiểm tra trạng thái khóa tài khoản
@@ -252,12 +262,44 @@ export async function verifyRegisterOTP(req, res) {
   res.json({ message: 'Verification successful', user: user.toSafeObject(), token: signToken(user) });
 }
 
+export async function verifyEmail(req, res) {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: 'Verification token is required.' });
+  }
+
+  const user = await User.findOne({ emailVerificationToken: String(token) });
+
+  if (!user) {
+    return res.status(400).json({ message: 'Invalid verification link.' });
+  }
+
+  if (user.status !== 'pending') {
+    return res.status(400).json({ message: 'Account is already verified.' });
+  }
+
+  if (!user.emailVerificationExpires || user.emailVerificationExpires < new Date()) {
+    return res.status(400).json({ message: 'Verification link has expired. Please register again to receive a new link.' });
+  }
+
+  user.status = 'active';
+  user.emailVerificationToken = null;
+  user.emailVerificationExpires = null;
+  user.otpCode = null;
+  user.otpExpires = null;
+  await user.save();
+
+  res.json({ message: 'Email verified successfully. You can now log in.' });
+}
+
 // Forgot Password - Send OTP code
 export async function forgotPassword(req, res) {
   const { email } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
   
   if (!user) return res.status(404).json({ message: 'Email does not exist.' });
+  if (user.status === 'pending') return res.status(403).json({ message: 'Account has not been verified. Please verify your email first.' });
   if (user.status === 'banned') return res.status(403).json({ message: 'Account is banned.' });
 
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -285,12 +327,18 @@ export async function resetPassword(req, res) {
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
   
   if (!user) return res.status(404).json({ message: 'Account does not exist.' });
+  if (user.status === 'pending') return res.status(403).json({ message: 'Account has not been verified. Please verify your email first.' });
+  if (user.status === 'banned') return res.status(403).json({ message: 'Account is banned.' });
   if (user.otpCode !== String(otp) || user.otpExpires < new Date()) return res.status(400).json({ message: 'Invalid or expired OTP.' });
+
+  const passwordStrengthError = validatePasswordStrength(newPassword, 'New password');
+  if (passwordStrengthError) {
+    return res.status(400).json({ message: passwordStrengthError });
+  }
 
   user.passwordHash = await bcrypt.hash(String(newPassword), 10);
   user.otpCode = null;
   user.otpExpires = null;
-  if (user.status === 'pending') user.status = 'active';
   await user.save();
 
   res.json({ message: 'Password reset successful. You can now log in.' });
