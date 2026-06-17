@@ -74,7 +74,6 @@ export async function register(req, res) {
   const existingUser = await User.findOne({ email: String(email).trim().toLowerCase() });
   if (existingUser) {
     if (existingUser.status === 'pending') {
-      // Allow re-registering / updating details for unverified accounts (pending)
       const verification = createEmailVerification();
       const passwordHash = await bcrypt.hash(password, 10);
 
@@ -103,7 +102,7 @@ export async function register(req, res) {
     passwordHash,
     emailVerificationToken: verification.token,
     emailVerificationExpires: verification.expires,
-    status: 'pending' // Pending activation status
+    status: 'pending'
   });
 
   sendVerificationEmailInBackground(user.email, verification.token);
@@ -119,17 +118,14 @@ export async function login(req, res) {
 
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
   
-  // Kiểm tra tài khoản có tồn tại và đúng mật khẩu hay không
   if (!user || !(await user.comparePassword(password))) {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
-  // Kiểm tra trạng thái xác thực OTP
   if (user.status === 'pending') {
     return res.status(403).json({ message: 'Your account has not been verified. Please check your verification email.' });
   }
 
-  // Kiểm tra trạng thái khóa tài khoản
   if (user.status === 'banned') {
     return res.status(403).json({ message: 'Your account has been banned' });
   }
@@ -239,7 +235,6 @@ export async function deleteMe(req, res) {
   res.json({ message: 'Account deleted' });
 }
 
-// Verify registration OTP
 export async function verifyRegisterOTP(req, res) {
   const { email, otp } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
@@ -330,7 +325,6 @@ export async function resendVerificationEmail(req, res) {
   }
 }
 
-// Forgot Password - Send OTP code
 export async function forgotPassword(req, res) {
   const { email } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
@@ -358,7 +352,6 @@ export async function forgotPassword(req, res) {
   }
 }
 
-// Reset password using OTP
 export async function resetPassword(req, res) {
   const { email, otp, newPassword } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });

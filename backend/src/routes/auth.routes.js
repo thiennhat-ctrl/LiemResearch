@@ -8,9 +8,9 @@ import {
     resendVerificationEmail,
     updateMe,
     verifyEmail,
-    verifyRegisterOTP,    // Hàm mới
-    forgotPassword,       // Hàm mới
-    resetPassword         // Hàm mới
+    verifyRegisterOTP,
+    forgotPassword,
+    resetPassword
 } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middlewares/auth.middleware.js';
 
