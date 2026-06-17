@@ -28,6 +28,19 @@ function buildEmailVerificationUrl(token) {
   return `${clientUrl.replace(/\/$/, '')}/verify-email?token=${encodeURIComponent(token)}`;
 }
 
+function sendVerificationEmailInBackground(email, token, label = 'Email Verification') {
+  const verificationUrl = buildEmailVerificationUrl(token);
+  console.log(`[${label}] Email: ${email} | URL: ${verificationUrl}`);
+
+  sendVerificationEmail(email, verificationUrl)
+    .then(() => {
+      console.log(`[${label}] Email sent to ${email}`);
+    })
+    .catch((error) => {
+      console.error(`[${label}] Error sending email:`, error);
+    });
+}
+
 export async function register(req, res) {
   const { fullName, university, email, password, confirmPassword } = req.body;
 
@@ -74,18 +87,8 @@ export async function register(req, res) {
       existingUser.otpExpires = null;
       await existingUser.save();
 
-      console.log(`[Email Verification - Retry] Email: ${existingUser.email} | URL: ${buildEmailVerificationUrl(verification.token)}`);
-
-      try {
-        await sendVerificationEmail(existingUser.email, buildEmailVerificationUrl(verification.token));
-        return res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
-      } catch (error) {
-        console.error('Error sending email:', error);
-        return res.status(201).json({ 
-          message: 'Registration successful but failed to send the verification email. Please check the server console for the verification link.',
-          isEmailFailed: true 
-        });
-      }
+      sendVerificationEmailInBackground(existingUser.email, verification.token, 'Email Verification - Retry');
+      return res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
     }
     return res.status(409).json({ message: 'Email already exists' });
   }
@@ -103,18 +106,8 @@ export async function register(req, res) {
     status: 'pending' // Pending activation status
   });
 
-  console.log(`[Email Verification] Email: ${user.email} | URL: ${buildEmailVerificationUrl(verification.token)}`);
-
-  try {
-    await sendVerificationEmail(user.email, buildEmailVerificationUrl(verification.token));
-    res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(201).json({ 
-      message: 'Registration successful but failed to send the verification email. Please check the server console for the verification link.',
-      isEmailFailed: true 
-    });
-  }
+  sendVerificationEmailInBackground(user.email, verification.token);
+  res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
 }
 
 export async function login(req, res) {
