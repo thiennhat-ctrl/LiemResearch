@@ -5,6 +5,7 @@ import {
     login,
     me,
     register,
+    resendVerificationEmail,
     updateMe,
     verifyEmail,
     verifyRegisterOTP,    // Hàm mới
@@ -201,6 +202,7 @@ router.delete('/me', requireAuth, deleteMe);
  */
 router.post('/verify-otp', verifyRegisterOTP);
 router.post('/verify-email', verifyEmail);
+router.post('/resend-verification-email', resendVerificationEmail);
 
 /**
  * @swagger

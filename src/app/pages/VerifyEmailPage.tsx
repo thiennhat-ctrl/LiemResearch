@@ -14,6 +14,8 @@ export default function VerifyEmailPage() {
   const [message, setMessage] = useState(
     token ? 'Verifying your email...' : 'Please check your inbox and click the verification link we sent you.'
   );
+  const [resendMessage, setResendMessage] = useState('');
+  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -45,6 +47,26 @@ export default function VerifyEmailPage() {
     };
   }, [navigate, token]);
 
+  async function handleResendVerificationEmail() {
+    if (!email || isResending) return;
+
+    setIsResending(true);
+    setResendMessage('');
+
+    try {
+      const data = await apiRequest<{ message: string }>('/auth/resend-verification-email', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+
+      setResendMessage(data.message || 'Verification email has been sent. Please check your inbox.');
+    } catch (error) {
+      setResendMessage(error instanceof Error ? error.message : 'Could not resend verification email.');
+    } finally {
+      setIsResending(false);
+    }
+  }
+
   const icon = {
     idle: <MailCheck className="h-8 w-8 text-blue-600" />,
     loading: <Loader2 className="h-8 w-8 animate-spin text-blue-600" />,
@@ -68,6 +90,22 @@ export default function VerifyEmailPage() {
 
           {email && state === 'idle' && (
             <p className="mt-2 text-sm font-medium text-slate-900">{email}</p>
+          )}
+
+          {email && state === 'idle' && (
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={handleResendVerificationEmail}
+                disabled={isResending}
+                className="inline-flex w-full items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isResending ? 'Sending...' : 'Resend verification email'}
+              </button>
+              {resendMessage && (
+                <p className="mt-3 text-sm leading-6 text-slate-600">{resendMessage}</p>
+              )}
+            </div>
           )}
 
           <div className="mt-7 flex justify-center">

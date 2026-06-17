@@ -293,6 +293,48 @@ export async function verifyEmail(req, res) {
   res.json({ message: 'Email verified successfully. You can now log in.' });
 }
 
+export async function resendVerificationEmail(req, res) {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required.' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: 'Please enter a valid email address.' });
+  }
+
+  const user = await User.findOne({ email: String(email).trim().toLowerCase() });
+
+  if (!user) {
+    return res.status(404).json({ message: 'Email does not exist.' });
+  }
+
+  if (user.status !== 'pending') {
+    return res.status(400).json({ message: 'Account is already verified.' });
+  }
+
+  const verification = createEmailVerification();
+  user.emailVerificationToken = verification.token;
+  user.emailVerificationExpires = verification.expires;
+  user.otpCode = null;
+  user.otpExpires = null;
+  await user.save();
+
+  console.log(`[Email Verification - Resend] Email: ${user.email} | URL: ${buildEmailVerificationUrl(verification.token)}`);
+
+  try {
+    await sendVerificationEmail(user.email, buildEmailVerificationUrl(verification.token));
+    res.json({ message: 'Verification email has been sent. Please check your inbox.' });
+  } catch (error) {
+    console.error('Error resending verification email:', error);
+    res.status(500).json({
+      message: 'Failed to send verification email. Please check the server console for the verification link.',
+      isEmailFailed: true
+    });
+  }
+}
+
 // Forgot Password - Send OTP code
 export async function forgotPassword(req, res) {
   const { email } = req.body;
