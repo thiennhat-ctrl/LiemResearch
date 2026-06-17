@@ -17,6 +17,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+console.log('[Email Config]', {
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: process.env.EMAIL_PORT || '587',
+  userSet: Boolean(process.env.EMAIL_USER),
+  passSet: Boolean(process.env.EMAIL_PASS),
+  fromSet: Boolean(process.env.EMAIL_FROM),
+});
+
+export function getEmailErrorDetails(error) {
+  return {
+    code: error?.code || null,
+    command: error?.command || null,
+    responseCode: error?.responseCode || null,
+    response: error?.response || error?.message || 'Unknown email error',
+  };
+}
+
 export async function sendOTPEmail(email, otpCode, type = 'register') {
   let subject = 'Xác thực tài khoản - LiemResearch';
   let message = `Mã OTP xác thực đăng ký tài khoản của bạn là: <b style="font-size: 18px; color: #1e40af;">${otpCode}</b>. Mã này có hiệu lực trong vòng 15 phút.`;

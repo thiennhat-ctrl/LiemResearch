@@ -6,7 +6,7 @@ import { deleteUserRelatedData } from '../utils/paperCleanup.js';
 import { syncUserPoints } from '../utils/points.js';
 import { normalizeText, validateFullName, validateUniversity } from '../utils/validation.js';
 import { validatePasswordStrength } from '../utils/passwordStrength.js';
-import { sendOTPEmail, sendVerificationEmail } from '../utils/email.js';
+import { getEmailErrorDetails, sendOTPEmail, sendVerificationEmail } from '../utils/email.js';
 
 function isPresent(value) {
   return value !== undefined && value !== null;
@@ -321,8 +321,10 @@ export async function resendVerificationEmail(req, res) {
     res.json({ message: 'Verification email has been sent. Please check your inbox.' });
   } catch (error) {
     console.error('Error resending verification email:', error);
+    const emailError = getEmailErrorDetails(error);
     res.status(500).json({
-      message: 'Failed to send verification email. Please check the server console for the verification link.',
+      message: `Failed to send verification email (${emailError.code || emailError.responseCode || 'SMTP error'}). Please check Render logs for details.`,
+      emailError,
       isEmailFailed: true
     });
   }
