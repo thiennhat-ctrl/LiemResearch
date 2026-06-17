@@ -18,7 +18,6 @@ const admin = await User.findOneAndUpdate(
     email: adminEmail,
     passwordHash,
     role: 'admin',
-    status: 'active',
   },
   { upsert: true, new: true }
 );

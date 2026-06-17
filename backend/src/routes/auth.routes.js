@@ -5,12 +5,10 @@ import {
     login,
     me,
     register,
-    resendVerificationEmail,
     updateMe,
-    verifyEmail,
-    verifyRegisterOTP,
-    forgotPassword,
-    resetPassword
+    verifyRegisterOTP,    // Hàm mới
+    forgotPassword,       // Hàm mới
+    resetPassword         // Hàm mới
 } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middlewares/auth.middleware.js';
 
@@ -201,8 +199,6 @@ router.delete('/me', requireAuth, deleteMe);
  *         description: OTP sai hoặc đã hết hạn
  */
 router.post('/verify-otp', verifyRegisterOTP);
-router.post('/verify-email', verifyEmail);
-router.post('/resend-verification-email', resendVerificationEmail);
 
 /**
  * @swagger

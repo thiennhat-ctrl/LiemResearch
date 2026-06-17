@@ -27,12 +27,11 @@ const PaperDetailPage = lazy(() => import('./pages/PaperDetailPage').then((modul
 // --- THÊM IMPORT CHO 2 TRANG MỚI Ở ĐÂY ---
 // (Lưu ý: Vì ở file trước tôi viết là 'export default function', nên ở đây chỉ cần import trực tiếp)
 const VerifyOTPPage = lazy(() => import('./pages/VerifyOTPPage'));
-const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 
 const LAST_PATH_KEY = 'last-pathname';
 // --- BỔ SUNG ĐƯỜNG DẪN VÀO PUBLIC_PATHS ĐỂ KHÔNG BỊ CHẶN ---
-const PUBLIC_PATHS = new Set(['/', '/explore', '/rankings', '/login', '/register', '/verify-otp', '/verify-email', '/forgot-password']);
+const PUBLIC_PATHS = new Set(['/', '/explore', '/rankings', '/login', '/register', '/verify-otp', '/forgot-password']);
 
 function AdminRouteGuard() {
   const location = useLocation();
@@ -133,7 +132,6 @@ export default function App() {
             
             {/* --- THÊM 2 ROUTE MỚI Ở ĐÂY --- */}
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             <Route path="/dashboard" element={<ProtectedRoute role="user"><UserDashboard /></ProtectedRoute>} />

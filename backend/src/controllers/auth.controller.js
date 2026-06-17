@@ -1,12 +1,11 @@
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { signToken } from '../utils/token.js';
 import { deleteUserRelatedData } from '../utils/paperCleanup.js';
 import { syncUserPoints } from '../utils/points.js';
 import { normalizeText, validateFullName, validateUniversity } from '../utils/validation.js';
 import { validatePasswordStrength } from '../utils/passwordStrength.js';
-import { getEmailErrorDetails, sendOTPEmail, sendVerificationEmail } from '../utils/email.js';
+import { sendOTPEmail } from '../utils/email.js';
 
 function isPresent(value) {
   return value !== undefined && value !== null;
@@ -14,31 +13,6 @@ function isPresent(value) {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
-}
-
-function createEmailVerification() {
-  return {
-    token: crypto.randomBytes(32).toString('hex'),
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-  };
-}
-
-function buildEmailVerificationUrl(token) {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-  return `${clientUrl.replace(/\/$/, '')}/verify-email?token=${encodeURIComponent(token)}`;
-}
-
-function sendVerificationEmailInBackground(email, token, label = 'Email Verification') {
-  const verificationUrl = buildEmailVerificationUrl(token);
-  console.log(`[${label}] Email: ${email} | URL: ${verificationUrl}`);
-
-  sendVerificationEmail(email, verificationUrl)
-    .then(() => {
-      console.log(`[${label}] Email sent to ${email}`);
-    })
-    .catch((error) => {
-      console.error(`[${label}] Error sending email:`, error);
-    });
 }
 
 export async function register(req, res) {
@@ -74,25 +48,38 @@ export async function register(req, res) {
   const existingUser = await User.findOne({ email: String(email).trim().toLowerCase() });
   if (existingUser) {
     if (existingUser.status === 'pending') {
-      const verification = createEmailVerification();
+      // Allow re-registering / updating details for unverified accounts (pending)
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
       const passwordHash = await bcrypt.hash(password, 10);
 
       existingUser.fullName = normalizeText(fullName);
       existingUser.university = normalizeText(university);
       existingUser.passwordHash = passwordHash;
-      existingUser.emailVerificationToken = verification.token;
-      existingUser.emailVerificationExpires = verification.expires;
-      existingUser.otpCode = null;
-      existingUser.otpExpires = null;
+      existingUser.otpCode = otpCode;
+      existingUser.otpExpires = otpExpires;
       await existingUser.save();
 
-      sendVerificationEmailInBackground(existingUser.email, verification.token, 'Email Verification - Retry');
-      return res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
+      console.log(`[OTP Register - Retry] Email: ${existingUser.email} | OTP: ${otpCode}`);
+
+      try {
+        await sendOTPEmail(existingUser.email, otpCode, 'register');
+        return res.status(201).json({ message: 'Please check your email to get the OTP code for account verification.' });
+      } catch (error) {
+        console.error('Error sending email:', error);
+        return res.status(201).json({ 
+          message: 'Registration successful but failed to send email. Please check the server console for the OTP code to verify.',
+          isEmailFailed: true 
+        });
+      }
     }
     return res.status(409).json({ message: 'Email already exists' });
   }
 
-  const verification = createEmailVerification();
+  // Generate random 6-digit OTP code
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
   const passwordHash = await bcrypt.hash(password, 10);
   
   const user = await User.create({
@@ -100,13 +87,24 @@ export async function register(req, res) {
     university: normalizeText(university),
     email: String(email).trim().toLowerCase(),
     passwordHash,
-    emailVerificationToken: verification.token,
-    emailVerificationExpires: verification.expires,
-    status: 'pending'
+    otpCode,
+    otpExpires,
+    status: 'pending' // Pending activation status
   });
 
-  sendVerificationEmailInBackground(user.email, verification.token);
-  res.status(201).json({ message: 'Please check your email and click the verification link to activate your account.' });
+  console.log(`[OTP Register] Email: ${user.email} | OTP: ${otpCode}`);
+
+  try {
+    // Send email containing OTP code
+    await sendOTPEmail(user.email, otpCode, 'register');
+    res.status(201).json({ message: 'Please check your email to get the OTP code for account verification.' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(201).json({ 
+      message: 'Registration successful but failed to send email. Please check the server console for the OTP code to verify.',
+      isEmailFailed: true 
+    });
+  }
 }
 
 export async function login(req, res) {
@@ -118,14 +116,17 @@ export async function login(req, res) {
 
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
   
+  // Kiểm tra tài khoản có tồn tại và đúng mật khẩu hay không
   if (!user || !(await user.comparePassword(password))) {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
+  // Kiểm tra trạng thái xác thực OTP
   if (user.status === 'pending') {
-    return res.status(403).json({ message: 'Your account has not been verified. Please check your verification email.' });
+    return res.status(403).json({ message: 'Your account has not been verified. Please check your OTP email.' });
   }
 
+  // Kiểm tra trạng thái khóa tài khoản
   if (user.status === 'banned') {
     return res.status(403).json({ message: 'Your account has been banned' });
   }
@@ -235,6 +236,7 @@ export async function deleteMe(req, res) {
   res.json({ message: 'Account deleted' });
 }
 
+// Verify registration OTP
 export async function verifyRegisterOTP(req, res) {
   const { email, otp } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
@@ -250,87 +252,12 @@ export async function verifyRegisterOTP(req, res) {
   res.json({ message: 'Verification successful', user: user.toSafeObject(), token: signToken(user) });
 }
 
-export async function verifyEmail(req, res) {
-  const { token } = req.body;
-
-  if (!token) {
-    return res.status(400).json({ message: 'Verification token is required.' });
-  }
-
-  const user = await User.findOne({ emailVerificationToken: String(token) });
-
-  if (!user) {
-    return res.status(400).json({ message: 'Invalid verification link.' });
-  }
-
-  if (user.status !== 'pending') {
-    return res.status(400).json({ message: 'Account is already verified.' });
-  }
-
-  if (!user.emailVerificationExpires || user.emailVerificationExpires < new Date()) {
-    return res.status(400).json({ message: 'Verification link has expired. Please register again to receive a new link.' });
-  }
-
-  user.status = 'active';
-  user.emailVerificationToken = null;
-  user.emailVerificationExpires = null;
-  user.otpCode = null;
-  user.otpExpires = null;
-  await user.save();
-
-  res.json({ message: 'Email verified successfully. You can now log in.' });
-}
-
-export async function resendVerificationEmail(req, res) {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ message: 'Email is required.' });
-  }
-
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ message: 'Please enter a valid email address.' });
-  }
-
-  const user = await User.findOne({ email: String(email).trim().toLowerCase() });
-
-  if (!user) {
-    return res.status(404).json({ message: 'Email does not exist.' });
-  }
-
-  if (user.status !== 'pending') {
-    return res.status(400).json({ message: 'Account is already verified.' });
-  }
-
-  const verification = createEmailVerification();
-  user.emailVerificationToken = verification.token;
-  user.emailVerificationExpires = verification.expires;
-  user.otpCode = null;
-  user.otpExpires = null;
-  await user.save();
-
-  console.log(`[Email Verification - Resend] Email: ${user.email} | URL: ${buildEmailVerificationUrl(verification.token)}`);
-
-  try {
-    await sendVerificationEmail(user.email, buildEmailVerificationUrl(verification.token));
-    res.json({ message: 'Verification email has been sent. Please check your inbox.' });
-  } catch (error) {
-    console.error('Error resending verification email:', error);
-    const emailError = getEmailErrorDetails(error);
-    res.status(500).json({
-      message: `Failed to send verification email (${emailError.code || emailError.responseCode || 'SMTP error'}). Please check Render logs for details.`,
-      emailError,
-      isEmailFailed: true
-    });
-  }
-}
-
+// Forgot Password - Send OTP code
 export async function forgotPassword(req, res) {
   const { email } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
   
   if (!user) return res.status(404).json({ message: 'Email does not exist.' });
-  if (user.status === 'pending') return res.status(403).json({ message: 'Account has not been verified. Please verify your email first.' });
   if (user.status === 'banned') return res.status(403).json({ message: 'Account is banned.' });
 
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -352,23 +279,18 @@ export async function forgotPassword(req, res) {
   }
 }
 
+// Reset password using OTP
 export async function resetPassword(req, res) {
   const { email, otp, newPassword } = req.body;
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
   
   if (!user) return res.status(404).json({ message: 'Account does not exist.' });
-  if (user.status === 'pending') return res.status(403).json({ message: 'Account has not been verified. Please verify your email first.' });
-  if (user.status === 'banned') return res.status(403).json({ message: 'Account is banned.' });
   if (user.otpCode !== String(otp) || user.otpExpires < new Date()) return res.status(400).json({ message: 'Invalid or expired OTP.' });
-
-  const passwordStrengthError = validatePasswordStrength(newPassword, 'New password');
-  if (passwordStrengthError) {
-    return res.status(400).json({ message: passwordStrengthError });
-  }
 
   user.passwordHash = await bcrypt.hash(String(newPassword), 10);
   user.otpCode = null;
   user.otpExpires = null;
+  if (user.status === 'pending') user.status = 'active';
   await user.save();
 
   res.json({ message: 'Password reset successful. You can now log in.' });

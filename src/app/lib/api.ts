@@ -13,7 +13,7 @@ export type AuthUser = {
   university: string;
   email: string;
   role: 'user' | 'admin';
-  status?: 'pending' | 'active' | 'banned';
+  status?: 'active' | 'banned';
   credits?: number;
   createdAt?: string;
   updatedAt?: string;
