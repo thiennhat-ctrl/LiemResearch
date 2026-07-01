@@ -16,6 +16,11 @@ const AUTH_MESSAGE_TRANSLATIONS: Record<string, string> = {
   'Passwords do not match': 'Passwords do not match.',
   'Email already exists': 'This email is already in use.',
   'Register failed': 'Registration failed.',
+  'This account uses Google sign-in. Please continue with Google.': 'This account uses Google sign-in. Please continue with Google.',
+  'Google sign-in was cancelled': 'Google sign-in was cancelled.',
+  'Invalid OAuth state. Please try again.': 'Sign-in session expired. Please try again.',
+  'Google sign-in failed': 'Google sign-in failed.',
+  'This email is already linked to a different Google account': 'This email is already linked to a different Google account.',
 };
 
 export function translateAuthMessage(message: string) {

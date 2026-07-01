@@ -8,6 +8,7 @@ import { UNIVERSITY_LIST_VN } from '../lib/universities';
 import { normalizeText, validateFullName } from '../lib/validation';
 import { getPasswordStrengthError } from '../lib/passwordStrength';
 import { translateAuthMessage } from '../lib/authMessages';
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 
 export function RegisterPage() {
   const logo = new URL('../../imports/liemresearch-logo-removebg-preview.png', import.meta.url).href;
@@ -136,6 +137,17 @@ export function RegisterPage() {
           </div>
 
           <div className="rounded-2xl border border-border/80 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8">
+            <GoogleSignInButton disabled={isLoading} />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/70" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white/80 px-3 text-muted-foreground">or create account with email</span>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <TextInput
                 label="Full Name"

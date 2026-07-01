@@ -115,9 +115,16 @@ export async function login(req, res) {
   }
 
   const user = await User.findOne({ email: String(email).trim().toLowerCase() });
-  
-  // Kiểm tra tài khoản có tồn tại và đúng mật khẩu hay không
-  if (!user || !(await user.comparePassword(password))) {
+
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid email or password' });
+  }
+
+  if (!user.passwordHash) {
+    return res.status(401).json({ message: 'This account uses Google sign-in. Please continue with Google.' });
+  }
+
+  if (!(await user.comparePassword(password))) {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
@@ -197,6 +204,10 @@ export async function changePassword(req, res) {
     return res.status(401).json({ message: 'Invalid access token' });
   }
 
+  if (!user.passwordHash) {
+    return res.status(400).json({ message: 'Password change is not available for Google sign-in accounts' });
+  }
+
   const ok = await user.comparePassword(currentPassword);
   if (!ok) {
     return res.status(401).json({ message: 'Invalid current password' });
@@ -224,9 +235,13 @@ export async function deleteMe(req, res) {
     return res.status(401).json({ message: 'Invalid access token' });
   }
 
-  const ok = await user.comparePassword(password);
-  if (!ok) {
-    return res.status(401).json({ message: 'Invalid password' });
+  if (user.passwordHash) {
+    const ok = await user.comparePassword(password);
+    if (!ok) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+  } else if (!user.googleId) {
+    return res.status(400).json({ message: 'password is required' });
   }
 
   const affectedUserIds = await deleteUserRelatedData(user._id);
@@ -245,6 +260,7 @@ export async function verifyRegisterOTP(req, res) {
   if (user.otpCode !== String(otp) || user.otpExpires < new Date()) return res.status(400).json({ message: 'Invalid or expired OTP.' });
 
   user.status = 'active';
+  user.emailVerified = true;
   user.otpCode = null;
   user.otpExpires = null;
   await user.save();
@@ -259,6 +275,9 @@ export async function forgotPassword(req, res) {
   
   if (!user) return res.status(404).json({ message: 'Email does not exist.' });
   if (user.status === 'banned') return res.status(403).json({ message: 'Account is banned.' });
+  if (!user.passwordHash) {
+    return res.status(400).json({ message: 'This account uses Google sign-in. Please continue with Google.' });
+  }
 
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   user.otpCode = otpCode;

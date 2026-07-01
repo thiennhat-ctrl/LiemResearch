@@ -6,10 +6,11 @@ import {
     me,
     register,
     updateMe,
-    verifyRegisterOTP,    // Hàm mới
-    forgotPassword,       // Hàm mới
-    resetPassword         // Hàm mới
+    verifyRegisterOTP,
+    forgotPassword,
+    resetPassword,
 } from '../controllers/auth.controller.js';
+import { googleAuthCallback, startGoogleAuth } from '../controllers/googleAuth.controller.js';
 import { requireAuth } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -74,6 +75,9 @@ router.post('/register', register);
  *         description: Login successful
  */
 router.post('/login', login);
+
+router.get('/google', startGoogleAuth);
+router.get('/google/callback', googleAuthCallback);
 
 /**
  * @swagger

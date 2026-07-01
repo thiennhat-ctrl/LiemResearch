@@ -13,7 +13,10 @@ export type AuthUser = {
   university: string;
   email: string;
   role: 'user' | 'admin';
-  status?: 'active' | 'banned';
+  status?: 'active' | 'banned' | 'pending';
+  provider?: 'local' | 'google';
+  avatar?: string | null;
+  emailVerified?: boolean;
   credits?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -76,6 +79,11 @@ export function resolveFileUrl(value: string) {
 
   const apiUrl = new URL(API_BASE_URL);
   return `${apiUrl.origin}${value}`;
+}
+
+export function getGoogleAuthUrl() {
+  const apiUrl = new URL(API_BASE_URL);
+  return `${apiUrl.origin}/api/auth/google`;
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {

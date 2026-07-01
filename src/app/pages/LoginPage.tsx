@@ -4,6 +4,7 @@ import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { apiRequest, AuthUser, saveAuth, getStoredUser, getToken } from '../lib/api';
 import { useToast } from '../components/ToastProvider';
 import { translateAuthMessage } from '../lib/authMessages';
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 
 export function LoginPage() {
   const { showToast } = useToast();
@@ -110,6 +111,17 @@ export function LoginPage() {
           </div>
 
           <div className="rounded-2xl border border-border/80 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8">
+            <GoogleSignInButton disabled={isLoading} />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/70" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white/80 px-3 text-muted-foreground">or sign in with email</span>
+              </div>
+            </div>
+
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="block text-foreground mb-2">Email</label>
